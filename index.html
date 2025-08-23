@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Reader JP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111827;
+            color: white;
+            margin: 0;
+            padding: 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .warning {
+            background: #fbbf24;
+            color: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚧 Manga Reader JP - Setup Required</h1>
+        
+        <div class="warning">
+            <strong>This React PWA requires a build process!</strong>
+        </div>
+        
+        <p>GitHub Pages "Deploy from a branch" cannot build React apps automatically.</p>
+        
+        <h2>Options to fix this:</h2>
+        <ol style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li><strong>Use GitHub Actions</strong> (recommended)
+                <ul>
+                    <li>Go to Settings → Pages</li>
+                    <li>Change source to "GitHub Actions"</li>
+                    <li>The workflow file is already set up</li>
+                </ul>
+            </li>
+            <li><strong>Build locally and commit</strong>
+                <ul>
+                    <li>Run: <code>cd client && npm run build</code></li>
+                    <li>Copy build files to root</li>
+                    <li>Commit and push</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <p><a href="https://github.com/arct1cx/MangaReader-jp">View Repository</a></p>
+    </div>
+</body>
+</html>

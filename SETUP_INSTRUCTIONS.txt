@@ -67,28 +67,59 @@ STEP 5: CREATE PWA ICONS
 5. Save 512x512 version as: client/public/icon-512.png
 6. CONFIRMATION: Icons saved? (Yes/No): yes
 
-STEP 6: ENABLE GITHUB PAGES FIRST (IMPORTANT!)
-----------------------------------------------
-⚠️ FOLLOW THESE EXACT STEPS:
+STEP 6: ENABLE GITHUB PAGES (CORRECT METHOD!)
+---------------------------------------------
+✅ YOU DID IT RIGHT! Here's what you did:
 
 1. Go to github.com → your MangaReader-jp repository
-2. Settings → Pages
-3. Source: "GitHub Actions" (NOT "Deploy from a branch")
-4. You should see: "Use a suggested workflow, or create your own"
-5. DO NOT click any Jekyll or Static HTML options
-6. Just select "GitHub Actions" and Save
-7. CONFIRMATION: GitHub Pages enabled with Actions? (Yes/No): ___________
+2. Settings → Pages  
+3. Source: Switch from "Deploy from a branch" to "GitHub Actions"
+4. ✅ NO SAVE BUTTON NEEDED - it changes automatically!
+5. CONFIRMATION: GitHub Pages set to Actions? (Yes/No): ___________
 
-STEP 7: UPDATE AND REDEPLOY
----------------------------
-1. The workflow file has been updated to fix the Pages configuration
-2. Commit and push the updated workflow:
-   - Open GitHub Desktop
-   - Commit: "Fix GitHub Actions workflow for Pages deployment"
-   - Push to origin
-3. Go to Actions tab and watch the deployment
-4. Your site will be at: https://arct1cx.github.io/MangaReader-jp
-5. CONFIRMATION: Deployment successful? (Yes/No): ___________
+STEP 7: CHECK DEPLOYMENT STATUS
+------------------------------
+Now check if your deployment is working:
+
+1. ✅ Red cross gone = GitHub Pages is properly configured
+2. Go to Actions tab in your repository
+3. Look for "Deploy React App to GitHub Pages" workflow
+4. Check if it's:
+   - 🟡 Yellow circle = Currently running (wait 2-3 minutes)
+   - ✅ Green checkmark = Deployment successful!
+   - ❌ Red X = Failed (click for details)
+5. Once successful, your site will be at: https://arct1cx.github.io/MangaReader-jp
+6. CONFIRMATION: What status do you see? (Running/Success/Failed): ___________
+
+STEP 8: FIX WORKFLOW FAILURES
+-----------------------------
+🔍 DIAGNOSE THE PROBLEM:
+
+1. Go to Actions tab in your repository
+2. Click on the most recent failed workflow (top one)
+3. Click on the failed job (probably "build-and-deploy")
+4. Look at the error message in the logs
+5. PASTE THE ERROR MESSAGE HERE: ___________________________
+
+COMMON FIXES:
+
+A) If error is "npm ci can't find package-lock.json":
+   - The client folder needs package-lock.json
+   - Solution: Run npm install in client folder locally, then commit
+
+B) If error is about missing dependencies:
+   - Solution: Check client/package.json dependencies
+
+C) If error is about build failures:
+   - Solution: Missing source files or configuration
+
+IMMEDIATE FIX - TRIGGER NEW WORKFLOW:
+------------------------------------
+1. I just added a small change to package.json
+2. Commit and push this change from GitHub Desktop
+3. This will trigger a new workflow run
+4. Check the new workflow for current error details
+5. CONFIRMATION: New workflow triggered? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
