@@ -91,26 +91,29 @@ Now check if your deployment is working:
 5. Once successful, your site will be at: https://arct1cx.github.io/MangaReader-jp
 6. CONFIRMATION: What status do you see? (Running/Success/Failed): ___________
 
-STEP 8: FIX WORKFLOW FAILURES
------------------------------
-✅ FOUND THE ERROR: ESLint warnings being treated as errors in CI
+STEP 8: FIX API CONNECTION ISSUE
+--------------------------------
+✅ IDENTIFIED ISSUE: Frontend can't connect to backend API
 
-The errors were:
-- Missing useEffect dependencies in Reader.js
-- Unused useEffect import in Search.js  
-- Orphaned code in japanese.js causing syntax error
+The problem:
+- Frontend deployed to GitHub Pages
+- Backend API URL not configured correctly
+- Getting ERR_NAME_NOT_RESOLVED errors
 
-✅ FIXED: Updated code to resolve all ESLint warnings
-- Fixed useEffect dependencies in Reader.js
-- Removed unused imports in Search.js
-- Cleaned up duplicated code in japanese.js
+✅ SOLUTION: Update API configuration
+
+1. Make sure your Render server is running: https://server-arct1cx.onrender.com/health
+2. Update client/.env with correct API URL
+3. Redeploy frontend to GitHub Pages
 
 NEXT ACTIONS:
-1. ✅ COMPLETED: ESLint errors fixed automatically
-2. Commit and push the fixes
-3. Go to Actions tab and watch for the new run
-4. This should now build successfully!
-5. CONFIRMATION: ESLint errors fixed and ready to push? (Yes/No): YES
+1. Test backend health: Visit https://server-arct1cx.onrender.com/health
+2. Should return: {"status":"OK","timestamp":"..."}
+3. If backend is down, check Render dashboard
+4. Update .env file with correct URL
+5. Commit and push to trigger new deployment
+
+CONFIRMATION: Backend health check working? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
