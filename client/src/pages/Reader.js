@@ -28,7 +28,7 @@ export default function Reader() {
   useEffect(() => {
     loadChapter();
     loadChapters();
-  }, [site, mangaId, chapterId]);
+  }, [site, mangaId, chapterId, loadChapter, loadChapters]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowControls(false), 3000);
