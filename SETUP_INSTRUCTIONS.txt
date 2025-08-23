@@ -69,26 +69,26 @@ STEP 5: CREATE PWA ICONS
 
 STEP 6: ENABLE GITHUB PAGES FIRST (IMPORTANT!)
 ----------------------------------------------
-⚠️ DO THIS BEFORE PUSHING CODE TO AVOID WORKFLOW FAILURES
+⚠️ FOLLOW THESE EXACT STEPS:
 
 1. Go to github.com → your MangaReader-jp repository
 2. Settings → Pages
 3. Source: "GitHub Actions" (NOT "Deploy from a branch")
-4. Save
-5. CONFIRMATION: GitHub Pages enabled? (Yes/No): ___________
+4. You should see: "Use a suggested workflow, or create your own"
+5. DO NOT click any Jekyll or Static HTML options
+6. Just select "GitHub Actions" and Save
+7. CONFIRMATION: GitHub Pages enabled with Actions? (Yes/No): ___________
 
-STEP 7: DEPLOY WITH GITHUB ACTIONS
-----------------------------------
-Now that Pages is enabled, the workflow will succeed:
-
-1. ✅ GitHub Actions workflow file already created
-2. Since you already pushed, the workflow tried to run but failed
-3. Go to Actions tab in your GitHub repository
-4. Click "Re-run all jobs" on the failed workflow
-5. OR make a small change and push again to trigger it
-6. Wait 2-3 minutes for build and deployment
-7. Your site will be at: https://arct1cx.github.io/MangaReader-jp
-8. CONFIRMATION: Deployment successful? (Yes/No): ___________
+STEP 7: UPDATE AND REDEPLOY
+---------------------------
+1. The workflow file has been updated to fix the Pages configuration
+2. Commit and push the updated workflow:
+   - Open GitHub Desktop
+   - Commit: "Fix GitHub Actions workflow for Pages deployment"
+   - Push to origin
+3. Go to Actions tab and watch the deployment
+4. Your site will be at: https://arct1cx.github.io/MangaReader-jp
+5. CONFIRMATION: Deployment successful? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
