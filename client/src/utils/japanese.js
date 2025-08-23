@@ -1,26 +1,30 @@
 import Tesseract from 'tesseract.js';
-import kuromoji from 'kuromoji';
+// import kuromoji from 'kuromoji'; // Temporarily disabled for build
 
 let kuromojiTokenizer = null;
 
 export async function initializeKuromoji() {
-  return new Promise((resolve, reject) => {
-    if (kuromojiTokenizer) {
-      resolve(kuromojiTokenizer);
-      return;
-    }
+  // Temporarily disabled - will be re-enabled later
+  console.warn('Kuromoji functionality temporarily disabled');
+  return null;
+  
+  // return new Promise((resolve, reject) => {
+  //   if (kuromojiTokenizer) {
+  //     resolve(kuromojiTokenizer);
+  //     return;
+  //   }
 
-    kuromoji.builder({
-      dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/"
-    }).build((err, tokenizer) => {
-      if (err) {
-        reject(err);
-      } else {
-        kuromojiTokenizer = tokenizer;
-        resolve(tokenizer);
-      }
-    });
-  });
+  //   kuromoji.builder({
+  //     dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/"
+  //   }).build((err, tokenizer) => {
+  //     if (err) {
+  //       reject(err);
+  //     } else {
+  //       kuromojiTokenizer = tokenizer;
+  //       resolve(tokenizer);
+  //     }
+  //   });
+  // });
 }
 
 export async function extractTextFromImage(imageElement) {
@@ -37,7 +41,8 @@ export async function extractTextFromImage(imageElement) {
 
 export function tokenizeJapanese(text, tokenizer) {
   if (!tokenizer) {
-    throw new Error('Tokenizer not initialized');
+    console.warn('Tokenizer not available - kuromoji temporarily disabled');
+    return [];
   }
   
   return tokenizer.tokenize(text);

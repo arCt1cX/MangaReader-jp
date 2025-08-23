@@ -93,17 +93,20 @@ Now check if your deployment is working:
 
 STEP 8: FIX WORKFLOW FAILURES
 -----------------------------
-✅ FOUND THE ERROR: Missing package-lock.json file
+✅ FOUND THE ERROR: Kuromoji package causing webpack build issues
 
-The error was: npm ci needs package-lock.json but we cleaned it up
+The error was: Can't resolve 'path' in kuromoji - webpack 5 doesn't include Node.js polyfills
 
-✅ FIXED: Changed workflow to use npm install instead of npm ci
+✅ TEMPORARY FIX: Removed kuromoji temporarily to get the app working
+- Basic manga reading will work
+- Japanese tokenization temporarily disabled
+- Can be re-enabled later with proper webpack configuration
 
 NEXT ACTIONS:
-1. Commit and push the updated workflow file
+1. Commit and push the updated package.json and japanese.js
 2. Go to Actions tab and watch for the new run
 3. This should now build successfully!
-4. CONFIRMATION: Updated workflow pushed? (Yes/No): ___________
+4. CONFIRMATION: Kuromoji removed and pushed? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
