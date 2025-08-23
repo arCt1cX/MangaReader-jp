@@ -91,29 +91,29 @@ Now check if your deployment is working:
 5. Once successful, your site will be at: https://arct1cx.github.io/MangaReader-jp
 6. CONFIRMATION: What status do you see? (Running/Success/Failed): ___________
 
-STEP 8: FIX API CONNECTION ISSUE
+STEP 8: FIX MISSING PARSER FILES
 --------------------------------
-✅ IDENTIFIED ISSUE: Frontend can't connect to backend API
+✅ IDENTIFIED ISSUE: Server missing manga parser files
 
 The problem:
-- Frontend deployed to GitHub Pages
-- Backend API URL not configured correctly
-- Getting ERR_NAME_NOT_RESOLVED errors
+- MangaNato parser was missing
+- Server couldn't parse manga from MangaNato site
+- Translation API had formatting errors
 
-✅ SOLUTION: Update API configuration
+✅ SOLUTION: Added all missing files
 
-1. Make sure your Render server is running: https://server-arct1cx.onrender.com/health
-2. Update client/.env with correct API URL
-3. Redeploy frontend to GitHub Pages
+1. ✅ COMPLETED: Added manganato.js parser
+2. ✅ COMPLETED: Fixed translation.js API format
+3. ✅ COMPLETED: Added mangadx.js parser
+4. ✅ COMPLETED: Added service worker for PWA
 
 NEXT ACTIONS:
-1. Test backend health: Visit https://server-arct1cx.onrender.com/health
-2. Should return: {"status":"OK","timestamp":"..."}
-3. If backend is down, check Render dashboard
-4. Update .env file with correct URL
-5. Commit and push to trigger new deployment
+1. Deploy server changes: cd d:\Server-arct1cx && git add . && git commit -m "Add manga parsers" && git push
+2. Wait for Render to redeploy
+3. Test manga API endpoints
+4. Redeploy frontend if needed
 
-CONFIRMATION: Backend health check working? (Yes/No): ___________
+CONFIRMATION: All parser files added and ready to deploy? (Yes/No): YES
 
 VERIFICATION CHECKLIST
 ======================
