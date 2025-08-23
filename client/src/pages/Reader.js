@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSwipeable } from 'react-swipeable';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -25,17 +25,7 @@ export default function Reader() {
   
   const imageRefs = useRef([]);
 
-  useEffect(() => {
-    loadChapter();
-    loadChapters();
-  }, [site, mangaId, chapterId, loadChapter, loadChapters]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowControls(false), 3000);
-    return () => clearTimeout(timer);
-  }, [currentPage]);
-
-  const loadChapter = async () => {
+  const loadChapter = useCallback(async () => {
     if (!chapterId) return;
     
     setLoading(true);
@@ -54,16 +44,26 @@ export default function Reader() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [site, chapterId, updateProgress, mangaId]);
 
-  const loadChapters = async () => {
+  const loadChapters = useCallback(async () => {
     try {
       const data = await getChapters(site, mangaId);
       setChapters(data.chapters);
     } catch (err) {
       console.error('Failed to load chapters:', err);
     }
-  };
+  }, [site, mangaId]);
+
+  useEffect(() => {
+    loadChapter();
+    loadChapters();
+  }, [loadChapter, loadChapters]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowControls(false), 3000);
+    return () => clearTimeout(timer);
+  }, [currentPage]);
 
   const nextPage = () => {
     if (currentPage < images.length - 1) {
