@@ -36,7 +36,6 @@ export default function Reader() {
       setImages(data.images);
       setCurrentPage(0);
       
-      // Update reading progress
       updateProgress(mangaId, site, chapterId);
     } catch (err) {
       setError('Failed to load chapter');

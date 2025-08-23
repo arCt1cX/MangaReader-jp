@@ -1,4 +1,5 @@
 import Tesseract from 'tesseract.js';
+
 // import kuromoji from 'kuromoji'; // Temporarily disabled for build
 
 export async function initializeKuromoji() {
@@ -55,25 +56,6 @@ export async function translateText(text) {
     throw error;
   }
 }
-
-export function isJapanese(text) {
-  const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-  return japaneseRegex.test(text);
-}
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/translation/deepl`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text, targetLang: 'EN' })
-    });
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Translation error:', error);
-    throw error;
-  }
 
 export function isJapanese(text) {
   const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
