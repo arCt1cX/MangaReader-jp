@@ -93,33 +93,17 @@ Now check if your deployment is working:
 
 STEP 8: FIX WORKFLOW FAILURES
 -----------------------------
-🔍 DIAGNOSE THE PROBLEM:
+✅ FOUND THE ERROR: Duplicate 'steps' section in workflow file
 
-1. Go to Actions tab in your repository
-2. Click on the most recent failed workflow (top one)
-3. Click on the failed job (probably "build-and-deploy")
-4. Look at the error message in the logs
-5. PASTE THE ERROR MESSAGE HERE: ___________________________
+The error was: 'steps' is already defined (Line: 57, Col: 5)
 
-COMMON FIXES:
+✅ FIXED: Updated the workflow file to remove the duplicate
 
-A) If error is "npm ci can't find package-lock.json":
-   - The client folder needs package-lock.json
-   - Solution: Run npm install in client folder locally, then commit
-
-B) If error is about missing dependencies:
-   - Solution: Check client/package.json dependencies
-
-C) If error is about build failures:
-   - Solution: Missing source files or configuration
-
-IMMEDIATE FIX - TRIGGER NEW WORKFLOW:
-------------------------------------
-1. I just added a small change to package.json
-2. Commit and push this change from GitHub Desktop
-3. This will trigger a new workflow run
-4. Check the new workflow for current error details
-5. CONFIRMATION: New workflow triggered? (Yes/No): ___________
+NEXT ACTIONS:
+1. Commit and push the fixed workflow file
+2. Go to Actions tab and watch for the new run
+3. This should now succeed!
+4. CONFIRMATION: Workflow file fixed and pushed? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
@@ -317,6 +301,22 @@ END OF SETUP INSTRUCTIONS
 3. Read error messages carefully
 4. Search the specific error on Google/Stack Overflow
 
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
+2. Look at server console output
+3. Read error messages carefully
+4. Search the specific error on Google/Stack Overflow
+
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
 The project is about 80% complete - you mainly need to create the missing files and test everything works together!
 
 END OF SETUP INSTRUCTIONS
