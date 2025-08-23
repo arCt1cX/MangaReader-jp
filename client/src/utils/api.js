@@ -11,6 +11,30 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', config.url);
+    return config;
+  },
+  (error) => {
+    console.error('API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Response Error:', error.message);
+    if (error.code === 'ERR_NAME_NOT_RESOLVED') {
+      console.error('Backend server is not accessible. Check if server is running.');
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Manga API functions
 export async function searchManga(site, query) {
   const response = await api.get(`/api/manga/search/${site}`, {
