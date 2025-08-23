@@ -67,29 +67,28 @@ STEP 5: CREATE PWA ICONS
 5. Save 512x512 version as: client/public/icon-512.png
 6. CONFIRMATION: Icons saved? (Yes/No): yes
 
-STEP 6: DEPLOY FRONTEND
-----------------------
-✅ USING GITHUB ACTIONS (AUTOMATIC DEPLOYMENT)
+STEP 6: ENABLE GITHUB PAGES FIRST (IMPORTANT!)
+----------------------------------------------
+⚠️ DO THIS BEFORE PUSHING CODE TO AVOID WORKFLOW FAILURES
 
-GITHUB ACTIONS SETUP:
----------------------
-1. ✅ GitHub Actions workflow file created automatically
-2. Commit and push all your code to GitHub:
-   - Open GitHub Desktop
-   - Review all changes in MangaReader-jp repository
-   - Commit with message: "Setup manga reader PWA with GitHub Actions"
-   - Click "Push origin"
-3. CONFIRMATION: Code pushed to GitHub? (Yes/No): ___________
-
-STEP 7: ENABLE GITHUB PAGES WITH ACTIONS
-----------------------------------------
 1. Go to github.com → your MangaReader-jp repository
 2. Settings → Pages
 3. Source: "GitHub Actions" (NOT "Deploy from a branch")
 4. Save
-5. Wait 2-3 minutes for automatic build and deployment
-6. Your site will be available at: https://[your-username].github.io/MangaReader-jp
-7. CONFIRMATION: GitHub Pages with Actions enabled? (Yes/No): ___________
+5. CONFIRMATION: GitHub Pages enabled? (Yes/No): ___________
+
+STEP 7: DEPLOY WITH GITHUB ACTIONS
+----------------------------------
+Now that Pages is enabled, the workflow will succeed:
+
+1. ✅ GitHub Actions workflow file already created
+2. Since you already pushed, the workflow tried to run but failed
+3. Go to Actions tab in your GitHub repository
+4. Click "Re-run all jobs" on the failed workflow
+5. OR make a small change and push again to trigger it
+6. Wait 2-3 minutes for build and deployment
+7. Your site will be at: https://arct1cx.github.io/MangaReader-jp
+8. CONFIRMATION: Deployment successful? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
@@ -139,6 +138,12 @@ If Step 6 fails with disk space errors:
 - Free up at least 2GB of disk space
 - Use Option B (GitHub Actions) instead
 - Consider using a different computer with more space
+
+If GitHub Actions fails:
+- Enable GitHub Pages FIRST (Step 6)
+- Check the Actions tab for error details
+- Re-run failed workflows after enabling Pages
+- Verify all files are committed and pushed
 
 SEND ME YOUR VERIFICATION RESULTS
 =================================
