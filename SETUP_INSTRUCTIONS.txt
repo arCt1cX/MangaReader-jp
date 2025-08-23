@@ -48,7 +48,7 @@ STEP 3: UPDATE RENDER ENVIRONMENT VARIABLES
    - Key: FRONTEND_URL
    - Value: https://[your-github-username].github.io
 6. Click "Save Changes"
-7. CONFIRMATION: Did Render redeploy automatically? (Yes/No): ___________
+7. CONFIRMATION: Did Render redeploy automatically? (Yes/No): yes
 
 STEP 4: UPDATE CLIENT API URL
 -----------------------------
@@ -56,7 +56,7 @@ STEP 4: UPDATE CLIENT API URL
 2. Replace the REACT_APP_API_URL with your Render server URL
 3. Should look like: REACT_APP_API_URL=https://your-server-name.onrender.com
 4. Save the file
-5. PASTE YOUR RENDER URL HERE: ___________________________
+5. PASTE YOUR RENDER URL HERE: https://server-arct1cx.onrender.com
 
 STEP 5: CREATE PWA ICONS
 ------------------------
@@ -65,30 +65,31 @@ STEP 5: CREATE PWA ICONS
 3. Download the PNG pack
 4. Save 192x192 version as: client/public/icon-192.png
 5. Save 512x512 version as: client/public/icon-512.png
-6. CONFIRMATION: Icons saved? (Yes/No): ___________
+6. CONFIRMATION: Icons saved? (Yes/No): yes
 
 STEP 6: DEPLOY FRONTEND
 ----------------------
-1. Open terminal in: d:\GitHubDesktop\repository\MangaReader-jp\client
-2. npm install
-3. npm install --save-dev gh-pages
-4. Edit package.json and add to "scripts" section:
-   "predeploy": "npm run build",
-   "deploy": "gh-pages -d build"
-5. Add "homepage" field (replace with your username):
-   "homepage": "https://[your-github-username].github.io/MangaReader-jp"
-6. npm run deploy
-7. CONFIRMATION: Deploy successful? (Yes/No): ___________
+✅ USING GITHUB ACTIONS (AUTOMATIC DEPLOYMENT)
 
-STEP 7: ENABLE GITHUB PAGES
----------------------------
+GITHUB ACTIONS SETUP:
+---------------------
+1. ✅ GitHub Actions workflow file created automatically
+2. Commit and push all your code to GitHub:
+   - Open GitHub Desktop
+   - Review all changes in MangaReader-jp repository
+   - Commit with message: "Setup manga reader PWA with GitHub Actions"
+   - Click "Push origin"
+3. CONFIRMATION: Code pushed to GitHub? (Yes/No): ___________
+
+STEP 7: ENABLE GITHUB PAGES WITH ACTIONS
+----------------------------------------
 1. Go to github.com → your MangaReader-jp repository
 2. Settings → Pages
-3. Source: "Deploy from a branch"
-4. Branch: "gh-pages"
-5. Folder: "/ (root)"
-6. Save
-7. CONFIRMATION: GitHub Pages enabled? (Yes/No): ___________
+3. Source: "GitHub Actions" (NOT "Deploy from a branch")
+4. Save
+5. Wait 2-3 minutes for automatic build and deployment
+6. Your site will be available at: https://[your-username].github.io/MangaReader-jp
+7. CONFIRMATION: GitHub Pages with Actions enabled? (Yes/No): ___________
 
 VERIFICATION CHECKLIST
 ======================
@@ -133,6 +134,11 @@ If Step 6 fails (npm run deploy):
 If APIs return errors:
 - Verify DEEPL_API_KEY is set correctly in Render
 - Check CORS settings match your GitHub Pages URL
+
+If Step 6 fails with disk space errors:
+- Free up at least 2GB of disk space
+- Use Option B (GitHub Actions) instead
+- Consider using a different computer with more space
 
 SEND ME YOUR VERIFICATION RESULTS
 =================================
@@ -255,6 +261,34 @@ GET HELP
 
 If you get stuck:
 1. Check browser developer console for errors
+2. Look at server console output
+3. Read error messages carefully
+4. Search the specific error on Google/Stack Overflow
+
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
+2. Look at server console output
+3. Read error messages carefully
+4. Search the specific error on Google/Stack Overflow
+
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
+2. Look at server console output
+3. Read error messages carefully
+4. Search the specific error on Google/Stack Overflow
+
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
+The project is about 80% complete - you mainly need to create the missing files and test everything works together!
+
+END OF SETUP INSTRUCTIONS
+=========================
 2. Look at server console output
 3. Read error messages carefully
 4. Search the specific error on Google/Stack Overflow

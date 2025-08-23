@@ -1,0 +1,38 @@
+CLEANUP MANUAL INSTALLATION ARTIFACTS
+=====================================
+
+Since we're switching to GitHub Actions deployment, clean up the manual installation:
+
+STEP 1: CLEAN UP CLIENT FOLDER
+------------------------------
+1. cd d:\GitHubDesktop\repository\MangaReader-jp\client
+2. Delete these if they exist:
+   - rmdir /s node_modules
+   - del package-lock.json
+   - del -rf build (if exists)
+
+STEP 2: RESET CLIENT PACKAGE.JSON
+---------------------------------
+The client/package.json should NOT have gh-pages in devDependencies since we're using GitHub Actions.
+
+STEP 3: COMMIT EVERYTHING TO GITHUB
+-----------------------------------
+1. Open GitHub Desktop
+2. You should see:
+   - New workflow file (.github/workflows/deploy.yml)
+   - All your manga reader code
+   - Cleaned up client folder
+3. Commit with message: "Setup GitHub Actions deployment for manga reader PWA"
+4. Push to GitHub
+
+STEP 4: ENABLE GITHUB PAGES
+---------------------------
+1. Go to github.com → MangaReader-jp repository
+2. Settings → Pages
+3. Source: "GitHub Actions" (important!)
+4. Save
+
+GitHub will automatically build and deploy your app!
+Your site will be: https://[your-username].github.io/MangaReader-jp
+
+NO MORE MANUAL npm run build OR npm run deploy NEEDED!
