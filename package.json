@@ -2,7 +2,7 @@
   "name": "manga-reader-pwa",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://arct1cx.github.io",
+  "homepage": "https://arct1cx.github.io/MangaReader-jp/",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -52,6 +52,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "resolutions": {
+    "ajv": "^8.12.0",
+    "ajv-keywords": "^5.1.0"
+  },
+  "overrides": {
+    "ajv": "^8.12.0",
+    "ajv-keywords": "^5.1.0"
   },
   "devDependencies": {
     "tailwindcss": "^3.3.0",
