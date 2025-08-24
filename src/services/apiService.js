@@ -80,7 +80,19 @@ class ApiService {
       site
     });
     
-    return this.request(`${API_ENDPOINTS.CHAPTER_IMAGES}?${params}`);
+    const result = await this.request(`${API_ENDPOINTS.CHAPTER_IMAGES}?${params}`);
+    
+    // Fix image URLs if they're relative proxy URLs
+    if (result?.success && result?.data?.pages) {
+      result.data.pages.forEach((page) => {
+        if (page.url && page.url.startsWith('/api/manga/image-proxy')) {
+          page.url = `${API_BASE_URL}${page.url}`;
+          console.log(`Fixed chapter image URL: ${page.url}`);
+        }
+      });
+    }
+    
+    return result;
   }
 
   async getAvailableSites() {
