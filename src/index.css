@@ -72,6 +72,53 @@ body {
   display: block;
   margin: 0 auto;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease;
+}
+
+/* Smooth scrolling for continuous scroll mode */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Page transition animations */
+.page-slide-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.page-slide-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-slide-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-slide-exit-active {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-fade-enter {
+  opacity: 0;
+}
+
+.page-fade-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.page-fade-exit {
+  opacity: 1;
+}
+
+.page-fade-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* Japanese text selection highlight */

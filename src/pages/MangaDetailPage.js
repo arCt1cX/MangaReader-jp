@@ -176,16 +176,27 @@ const MangaDetailPage = () => {
                 </div>
               )}
 
-              <button
-                onClick={handleLibraryToggle}
-                className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-colors ${
-                  isInLibrary
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-manga-accent hover:bg-blue-600 text-white'
-                }`}
-              >
-                {isInLibrary ? '❤️ Remove from Library' : '💝 Add to Library'}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <button
+                  onClick={handleLibraryToggle}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-colors ${
+                    isInLibrary
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-manga-accent hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {isInLibrary ? '❤️ Remove from Library' : '💝 Add to Library'}
+                </button>
+                {/* Start from Chapter 1 Button */}
+                {manga.chapters && manga.chapters.length > 0 && (
+                  <button
+                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:bg-blue-600 transition-colors"
+                    onClick={() => handleChapterClick(manga.chapters[manga.chapters.length - 1])}
+                  >
+                    ▶️ Start from Chapter 1
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
