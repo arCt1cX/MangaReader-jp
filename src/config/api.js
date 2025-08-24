@@ -1,7 +1,7 @@
 // API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://manga-reader-server-avc1.onrender.com'  // Update this with your actual Render URL after deployment
-  : 'http://localhost:5000';
+  : 'http://localhost:3000';
 
 export const API_ENDPOINTS = {
   // Manga endpoints
