@@ -42,6 +42,7 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
               loading="lazy"
               onError={handleImageError}
               onLoad={handleImageLoad}
+              crossOrigin="anonymous"
             />
           </>
         ) : (

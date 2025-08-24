@@ -39,9 +39,18 @@ class ApiService {
     const result = await this.request(`${API_ENDPOINTS.SEARCH_MANGA}?${params}`);
     console.log('Search result:', result);
     
-    // Log cover image URLs for debugging
+    // Log cover image URLs for debugging and convert proxy URLs back to direct URLs
     if (result?.data?.manga) {
       result.data.manga.forEach((manga, index) => {
+        // Convert proxy URLs back to direct URLs temporarily
+        if (manga.coverImage && manga.coverImage.startsWith('/api/manga/image-proxy')) {
+          const urlMatch = manga.coverImage.match(/url=([^&]+)/);
+          if (urlMatch) {
+            manga.coverImage = decodeURIComponent(urlMatch[1]);
+            console.log(`Converted proxy URL to direct URL for ${manga.title}: ${manga.coverImage}`);
+          }
+        }
+        
         if (index < 3) { // Log first 3 for debugging
           console.log(`Manga ${index + 1}: ${manga.title} - Cover: ${manga.coverImage}`);
         }

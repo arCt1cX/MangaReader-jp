@@ -21,11 +21,11 @@ export const API_ENDPOINTS = {
 // Default manga sites configuration
 export const DEFAULT_MANGA_SITES = [
   {
-    id: 'mangadex',
-    name: 'MangaDex',
-    url: 'https://mangadex.org',
+    id: 'mangaworld',
+    name: 'MangaWorld',
+    url: 'https://mangaworld.cx',
     color: '#ff6740',
-    description: 'High quality scanlations'
+    description: 'Italian manga site with latest releases'
   },
   {
     id: 'manganato',
