@@ -130,6 +130,11 @@ const ReaderPage = () => {
 
   const currentPageData = pages[currentPage];
 
+  // Debug: log current page data
+  if (currentPageData) {
+    console.log('Current page data:', currentPageData);
+  }
+
   return (
     <div className="min-h-screen bg-black text-white relative">
       {/* Top UI Bar */}
@@ -162,10 +167,11 @@ const ReaderPage = () => {
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="max-w-4xl mx-auto">
           <img
-            src={currentPageData.imageUrl}
+            src={currentPageData.url}
             alt={`Page ${currentPage + 1}`}
             className="manga-page cursor-pointer select-none"
             onClick={handleImageClick}
+            crossOrigin="anonymous"
             onError={(e) => {
               e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
             }}
