@@ -35,7 +35,20 @@ class ApiService {
       page: page.toString()
     });
     
-    return this.request(`${API_ENDPOINTS.SEARCH_MANGA}?${params}`);
+    console.log('Searching manga:', { site, query, page });
+    const result = await this.request(`${API_ENDPOINTS.SEARCH_MANGA}?${params}`);
+    console.log('Search result:', result);
+    
+    // Log cover image URLs for debugging
+    if (result?.data?.manga) {
+      result.data.manga.forEach((manga, index) => {
+        if (index < 3) { // Log first 3 for debugging
+          console.log(`Manga ${index + 1}: ${manga.title} - Cover: ${manga.coverImage}`);
+        }
+      });
+    }
+    
+    return result;
   }
 
   async getMangaInfo(site, id) {
