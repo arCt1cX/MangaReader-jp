@@ -5,7 +5,7 @@ import { useLibrary } from '../contexts/LibraryContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const MANGA_SOURCES = [
-  { id: 'mangadex', name: 'MangaDex' },
+  { id: 'mangadx', name: 'MangaDx' },
   { id: 'manganato', name: 'MangaNato' }
 ];
 
@@ -13,7 +13,7 @@ export default function Search() {
   const { site } = useParams();
   const { addToLibrary, removeFromLibrary, isInLibrary } = useLibrary();
   
-  const [selectedSite, setSelectedSite] = useState(site || 'mangadex');
+  const [selectedSite, setSelectedSite] = useState(site || 'mangadx');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);

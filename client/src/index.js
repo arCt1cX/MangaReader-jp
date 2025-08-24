@@ -13,12 +13,12 @@ root.render(
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Dynamically determine the correct path for sw.js
-    let swPath = '/sw.js';
-    if (window.location.pathname.startsWith('/MangaReader-jp')) {
-      swPath = '/MangaReader-jp/sw.js';
-    }
-    navigator.serviceWorker.register(swPath)
+    // Use relative path for GitHub Pages compatibility
+    const swUrl = process.env.NODE_ENV === 'production' 
+      ? `${process.env.PUBLIC_URL}/sw.js`
+      : '/sw.js';
+    
+    navigator.serviceWorker.register(swUrl)
       .then((registration) => {
         console.log('SW registered: ', registration);
       })
