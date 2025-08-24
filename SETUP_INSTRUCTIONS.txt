@@ -33,7 +33,7 @@ In your Render service dashboard, go to Environment tab and add:
 
 ```
 NODE_ENV=production
-FRONTEND_URL=https://arct1cx.github.io
+FRONTEND_URL=https://arct1cx.github.io/MangaReader-jp
 DEEPL_API_KEY=e443f432-a3a6-40d9-9605-614485f965ed:fx
 PORT=10000
 ```
@@ -56,10 +56,8 @@ git push origin main
 ### 2. Configure GitHub Pages
 1. Go to your MangaReader-jp repository on GitHub
 2. Go to Settings → Pages
-3. Under "Source", select "Deploy from a branch"
-4. Select branch: `main`
-5. Select folder: `/ (root)`
-6. Click Save
+3. Under "Source", select "GitHub Actions"
+4. The app will auto-deploy when you push to main branch
 
 ### 3. Update API Base URL
 After your Render deployment is complete, update the API base URL in your frontend:
@@ -122,10 +120,13 @@ All frontend configuration is in `src/config/api.js` - no environment variables 
 ## Troubleshooting
 
 ### Common Issues:
-1. **CORS errors**: Ensure FRONTEND_URL is correctly set in backend
-2. **PWA not installing**: Check manifest.json and service worker registration
-3. **Images not loading**: Verify proxy endpoints are working
-4. **OCR not working**: Ensure Tesseract.js loads properly on HTTPS
+1. **GitHub Actions build fails**: Check the Actions tab in your repository for detailed error logs
+2. **Package lock file conflicts**: The workflow automatically handles this by recreating the lock file
+3. **CORS errors**: Ensure FRONTEND_URL is correctly set in backend
+4. **PWA not installing**: Check manifest.json and service worker registration
+5. **Images not loading**: Verify proxy endpoints are working
+6. **OCR not working**: Ensure Tesseract.js loads properly on HTTPS
+7. **GitHub Pages shows README instead of app**: Ensure you selected "GitHub Actions" as the source in Pages settings
 
 ### Logs:
 - Backend logs: Check Render dashboard logs
