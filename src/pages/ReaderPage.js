@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReaderPage = () => {
   const { site, chapter } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -13,12 +14,20 @@ const ReaderPage = () => {
   const [error, setError] = useState(null);
   const [showUI, setShowUI] = useState(true);
 
+  // Get chapter URL from navigation state if available
+  const chapterUrl = location.state?.chapterUrl;
+
   const loadChapterPages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await apiService.getChapterImages(chapter, site);
+      // Use chapter URL from navigation state if available, otherwise fall back to chapter ID
+      const chapterIdentifier = chapterUrl || chapter;
+      console.log('Loading chapter with identifier:', chapterIdentifier);
+      console.log('Site:', site);
+      
+      const response = await apiService.getChapterImages(chapterIdentifier, site);
       
       if (response.success) {
         setPages(response.data.pages);
@@ -31,7 +40,7 @@ const ReaderPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [site, chapter]);
+  }, [site, chapter, chapterUrl]);
 
   useEffect(() => {
     loadChapterPages();
