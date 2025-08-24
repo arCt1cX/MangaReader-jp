@@ -8,6 +8,7 @@ const SettingsPage = () => {
     updateJapaneseHelper, 
     updatePageTransition,
     updateZoomSettings,
+    updateTheme,
     resetSettings 
   } = useSettings();
 
@@ -132,6 +133,40 @@ const SettingsPage = () => {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Theme Settings */}
+        <section className="bg-manga-gray rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-manga-text mb-4">
+            🎨 Theme
+          </h2>
+          
+          <div>
+            <label className="block text-manga-text font-medium mb-2">
+              Color Scheme
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'standard', label: '🌙 Standard', desc: 'Current dark gray theme' },
+                { value: 'dark', label: '⚫ Dark Mode', desc: 'Pure black background' },
+                { value: 'light', label: '☀️ Light Mode', desc: 'Clean white theme' },
+                { value: 'amoled', label: '🌌 AMOLED', desc: 'Deep black with blue accents' }
+              ].map((theme) => (
+                <button
+                  key={theme.value}
+                  onClick={() => updateTheme(theme.value)}
+                  className={`p-4 rounded-lg border text-left transition-colors ${
+                    settings.theme === theme.value
+                      ? 'bg-manga-accent border-manga-accent text-white'
+                      : 'bg-manga-light border-manga-light text-manga-text hover:bg-manga-light/70'
+                  }`}
+                >
+                  <div className="font-medium text-sm">{theme.label}</div>
+                  <div className="text-xs opacity-70 mt-1">{theme.desc}</div>
+                </button>
+              ))}
             </div>
           </div>
         </section>

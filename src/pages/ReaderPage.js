@@ -18,6 +18,7 @@ const ReaderPage = () => {
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
+  const chapterData = location.state?.chapterData;
 
   const loadChapterPages = useCallback(async () => {
     try {
@@ -193,7 +194,12 @@ const ReaderPage = () => {
               ← Back
             </button>
             <div className="text-center">
-              <h1 className="font-semibold">Chapter {chapter}</h1>
+              <h1 className="font-semibold">
+                {chapterData ? 
+                  `Chapter ${chapterData.number}${chapterData.title ? ` - ${chapterData.title}` : ''}` : 
+                  `Chapter ${chapter}`
+                }
+              </h1>
               <p className="text-sm text-white/70">
                 {settings.readingMode === 'scroll' 
                   ? `${pages.length} pages (Continuous Scroll)`

@@ -160,3 +160,123 @@ html {
     font-size: 18px;
   }
 }
+
+/* Theme Variables */
+:root {
+  /* Standard Theme (current) */
+  --manga-dark: #111827;
+  --manga-gray: #1f2937;
+  --manga-light: #374151;
+  --manga-text: #f9fafb;
+  --manga-accent: #3b82f6;
+}
+
+/* Theme Classes */
+.theme-standard {
+  background-color: var(--manga-dark);
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: rgba(249, 250, 251, 0.7);
+  --accent: #3b82f6;
+}
+
+.theme-dark {
+  background-color: #000000;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent: #3b82f6;
+}
+
+.theme-light {
+  background-color: #ffffff;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: rgba(30, 41, 59, 0.7);
+  --accent: #2563eb;
+}
+
+.theme-amoled {
+  background-color: #000000;
+  --bg-primary: #000000;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #1e293b;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --accent: #06b6d4;
+}
+
+/* Apply theme variables to existing classes */
+.theme-standard .bg-manga-dark,
+.theme-dark .bg-manga-dark,
+.theme-light .bg-manga-dark,
+.theme-amoled .bg-manga-dark {
+  background-color: var(--bg-primary) !important;
+}
+
+.theme-standard .bg-manga-gray,
+.theme-dark .bg-manga-gray,
+.theme-light .bg-manga-gray,
+.theme-amoled .bg-manga-gray {
+  background-color: var(--bg-secondary) !important;
+}
+
+.theme-standard .bg-manga-light,
+.theme-dark .bg-manga-light,
+.theme-light .bg-manga-light,
+.theme-amoled .bg-manga-light {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.theme-standard .text-manga-text,
+.theme-dark .text-manga-text,
+.theme-light .text-manga-text,
+.theme-amoled .text-manga-text {
+  color: var(--text-primary) !important;
+}
+
+.theme-standard .bg-manga-accent,
+.theme-dark .bg-manga-accent,
+.theme-light .bg-manga-accent,
+.theme-amoled .bg-manga-accent {
+  background-color: var(--accent) !important;
+}
+
+.theme-standard .text-manga-accent,
+.theme-dark .text-manga-accent,
+.theme-light .text-manga-accent,
+.theme-amoled .text-manga-accent {
+  color: var(--accent) !important;
+}
+
+/* Special styling for light theme borders and shadows */
+.theme-light .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-light .border-manga-light {
+  border-color: #cbd5e1 !important;
+}
+
+/* Reader page theme adjustments */
+.theme-light .min-h-screen.bg-black {
+  background-color: var(--bg-primary) !important;
+}
+
+.theme-light .bg-black\/80 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+}
+
+.theme-light .text-white {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .text-white\/70 {
+  color: var(--text-secondary) !important;
+}

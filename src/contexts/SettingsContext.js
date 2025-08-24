@@ -11,6 +11,7 @@ const SETTINGS_ACTIONS = {
   UPDATE_PAGE_TRANSITION: 'UPDATE_PAGE_TRANSITION',
   UPDATE_ZOOM_SETTINGS: 'UPDATE_ZOOM_SETTINGS',
   UPDATE_CUSTOM_SITES: 'UPDATE_CUSTOM_SITES',
+  UPDATE_THEME: 'UPDATE_THEME',
   RESET_SETTINGS: 'RESET_SETTINGS'
 };
 
@@ -41,7 +42,7 @@ const DEFAULT_SETTINGS = {
     }
   },
   customSites: [],
-  theme: 'dark',
+  theme: 'standard', // 'standard', 'dark', 'light', 'amoled'
   language: 'en'
 };
 
@@ -94,6 +95,12 @@ function settingsReducer(state, action) {
       return {
         ...state,
         customSites: action.payload
+      };
+
+    case SETTINGS_ACTIONS.UPDATE_THEME:
+      return {
+        ...state,
+        theme: action.payload
       };
 
     case SETTINGS_ACTIONS.RESET_SETTINGS:
@@ -175,6 +182,13 @@ export function SettingsProvider({ children }) {
     });
   };
 
+  const updateTheme = (theme) => {
+    dispatch({
+      type: SETTINGS_ACTIONS.UPDATE_THEME,
+      payload: theme
+    });
+  };
+
   const resetSettings = () => {
     dispatch({
       type: SETTINGS_ACTIONS.RESET_SETTINGS
@@ -189,6 +203,7 @@ export function SettingsProvider({ children }) {
     updatePageTransition,
     updateZoomSettings,
     updateCustomSites,
+    updateTheme,
     resetSettings
   };
 
