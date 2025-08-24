@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -7,11 +7,15 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const MangaDetailPage = () => {
   const { site, id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addManga, removeManga, isMangaInLibrary } = useLibrary();
   
   const [manga, setManga] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get manga data from navigation state if available
+  const mangaFromState = location.state?.mangaData;
 
   const isInLibrary = manga ? isMangaInLibrary(manga.id) : false;
 
@@ -23,7 +27,15 @@ const MangaDetailPage = () => {
       const response = await apiService.getMangaInfo(site, id);
       
       if (response.success) {
-        setManga(response.data);
+        const mangaData = response.data;
+        
+        // Use cover image from search results if available (it's already processed correctly)
+        if (mangaFromState?.coverImage) {
+          mangaData.coverImage = mangaFromState.coverImage;
+          console.log('Using cover image from search results:', mangaData.coverImage);
+        }
+        
+        setManga(mangaData);
       } else {
         setError(response.error || 'Failed to load manga details');
       }
@@ -33,7 +45,7 @@ const MangaDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [site, id]);
+  }, [site, id, mangaFromState]);
 
   useEffect(() => {
     loadMangaDetails();

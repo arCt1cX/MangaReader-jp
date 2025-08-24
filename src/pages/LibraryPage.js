@@ -9,7 +9,12 @@ const LibraryPage = () => {
   const library = getLibraryArray();
 
   const handleMangaClick = (manga) => {
-    navigate(`/manga/${manga.site}/${encodeURIComponent(manga.id)}`);
+    navigate(`/manga/${manga.site}/${encodeURIComponent(manga.id)}`, {
+      state: { 
+        mangaData: manga,
+        fromLibrary: true 
+      }
+    });
   };
 
   const handleClearLibrary = () => {

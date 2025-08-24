@@ -33,7 +33,12 @@ const HomePage = () => {
   };
 
   const handleRecentMangaClick = (manga) => {
-    navigate(`/manga/${manga.site}/${manga.id}`);
+    navigate(`/manga/${manga.site}/${manga.id}`, {
+      state: { 
+        mangaData: manga,
+        fromLibrary: true 
+      }
+    });
   };
 
   return (

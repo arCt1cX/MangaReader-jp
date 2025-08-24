@@ -65,7 +65,12 @@ const SearchPage = () => {
   };
 
   const handleMangaClick = (manga) => {
-    navigate(`/manga/${site}/${encodeURIComponent(manga.id)}`);
+    navigate(`/manga/${site}/${encodeURIComponent(manga.id)}`, {
+      state: { 
+        mangaData: manga,
+        fromSearch: true 
+      }
+    });
   };
 
   const getSiteName = () => {
