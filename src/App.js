@@ -14,7 +14,7 @@ function App() {
   return (
     <SettingsProvider>
       <LibraryProvider>
-        <Router>
+        <Router basename="/MangaReader-jp">
           <div className="min-h-screen bg-manga-dark text-manga-text">
             <Routes>
               <Route path="/" element={<HomePage />} />
