@@ -60,7 +60,9 @@ const MangaDetailPage = () => {
   };
 
   const handleChapterClick = (chapter) => {
-    navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.id || chapter.number}`);
+    // Pass the full chapter URL instead of just the ID
+    const chapterIdentifier = chapter.url || chapter.id || chapter.number;
+    navigate(`/reader/${site}/${encodeURIComponent(id)}/${encodeURIComponent(chapterIdentifier)}`);
   };
 
   if (loading) {
