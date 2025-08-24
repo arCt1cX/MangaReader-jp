@@ -70,9 +70,7 @@ const SearchPage = () => {
 
   const getSiteName = () => {
     const siteNames = {
-      'mangaworld': 'MangaWorld',
-      'manganato': 'Manganato',
-      'mangakakalot': 'Mangakakalot'
+      'mangaworld': 'MangaWorld'
     };
     return siteNames[site] || site;
   };

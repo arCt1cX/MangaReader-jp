@@ -26,20 +26,6 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://mangaworld.cx',
     color: '#ff6740',
     description: 'Italian manga site with latest releases'
-  },
-  {
-    id: 'manganato',
-    name: 'Manganato',
-    url: 'https://manganato.com',
-    color: '#4ade80',
-    description: 'Fast updates, multiple languages'
-  },
-  {
-    id: 'mangakakalot',
-    name: 'Mangakakalot',
-    url: 'https://mangakakalot.com',
-    color: '#06b6d4',
-    description: 'Large manga collection'
   }
 ];
 
