@@ -10,10 +10,7 @@ const HomePage = () => {
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
-  console.log('HomePage rendering...', { location: window.location.href });
-
   useEffect(() => {
-    console.log('HomePage useEffect running...');
     // Check backend status
     checkBackendStatus();
     

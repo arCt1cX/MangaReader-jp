@@ -1,19 +1,15 @@
 const CACHE_NAME = 'manga-reader-v1';
 const urlsToCache = [
   '/',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
   '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        // Only cache files that we know exist
-        return cache.addAll(urlsToCache.filter(url => {
-          // Skip dynamic files that might not exist yet
-          return !url.includes('/static/');
-        }));
-      })
+      .then((cache) => cache.addAll(urlsToCache))
   );
 });
 
