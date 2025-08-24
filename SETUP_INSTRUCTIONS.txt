@@ -1,0 +1,151 @@
+# Manga Reader PWA Setup Instructions
+
+## Overview
+This setup guide will help you deploy:
+1. Backend server on Render (Node.js Express app)
+2. Frontend PWA on GitHub Pages
+3. Configure all necessary environment variables and API keys
+
+## Prerequisites
+- GitHub account
+- Render account (free tier)
+- DeepL API key: e443f432-a3a6-40d9-9605-614485f965ed:fx
+
+## Backend Setup (Render Deployment)
+
+### 1. Prepare the Server Repository
+Your server code is already in the Server-arct1cx folder. The manga API routes have been added to your existing server.
+
+### 2. Deploy to Render
+1. Go to https://render.com and sign in
+2. Click "New +" → "Web Service"
+3. Connect your GitHub account if not already connected
+4. Select your Server-arct1cx repository
+5. Configure the service:
+   - Name: `manga-reader-server` (or your preferred name)
+   - Environment: `Node`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Instance Type: `Free`
+
+### 3. Configure Environment Variables on Render
+In your Render service dashboard, go to Environment tab and add:
+
+```
+NODE_ENV=production
+FRONTEND_URL=https://arct1cx.github.io
+DEEPL_API_KEY=e443f432-a3a6-40d9-9605-614485f965ed:fx
+PORT=10000
+```
+
+### 4. Deploy
+Click "Create Web Service" and wait for deployment to complete.
+Note your Render URL (something like: https://manga-reader-server.onrender.com)
+
+## Frontend Setup (GitHub Pages)
+
+### 1. Push Frontend Code to GitHub
+1. Navigate to the MangaReader-jp folder
+2. Run these commands:
+```bash
+git add .
+git commit -m "Initial manga reader PWA setup"
+git push origin main
+```
+
+### 2. Configure GitHub Pages
+1. Go to your MangaReader-jp repository on GitHub
+2. Go to Settings → Pages
+3. Under "Source", select "Deploy from a branch"
+4. Select branch: `main`
+5. Select folder: `/ (root)`
+6. Click Save
+
+### 3. Update API Base URL
+After your Render deployment is complete, update the API base URL in your frontend:
+1. Open `src/config/api.js`
+2. Replace `https://server-arct1cx.onrender.com` with your actual Render URL if different
+3. Commit and push the changes
+
+## Local Development Setup
+
+### 1. Backend (Server-arct1cx folder)
+```bash
+cd Server-arct1cx
+npm install
+# Create .env file with:
+# NODE_ENV=development
+# DEEPL_API_KEY=e443f432-a3a6-40d9-9605-614485f965ed:fx
+# FRONTEND_URL=http://localhost:3000
+npm run dev
+```
+Server will run on http://localhost:5000
+
+### 2. Frontend (MangaReader-jp folder)
+```bash
+cd MangaReader-jp
+npm install
+npm start
+```
+PWA will run on http://localhost:3000
+
+## Testing the Setup
+
+### 1. Test Backend Endpoints
+- Health check: GET https://your-render-url.onrender.com/health
+- Manga search: GET https://your-render-url.onrender.com/api/manga/search?site=mangadex&query=naruto
+- Chapter images: GET https://your-render-url.onrender.com/api/manga/chapter?url=CHAPTER_URL
+
+### 2. Test Frontend
+- Visit https://arct1cx.github.io
+- Try installing the PWA (Add to Home Screen)
+- Test manga search and reading functionality
+- Test Japanese reading helper with OCR and translation
+
+### 3. Test PWA Installation
+- On mobile: Open in browser and tap "Add to Home Screen"
+- On desktop: Look for install icon in address bar
+
+## Environment Variables Reference
+
+### Backend (.env)
+```
+NODE_ENV=production
+FRONTEND_URL=https://arct1cx.github.io
+DEEPL_API_KEY=e443f432-a3a6-40d9-9605-614485f965ed:fx
+PORT=10000
+```
+
+### Frontend (build-time)
+All frontend configuration is in `src/config/api.js` - no environment variables needed.
+
+## Troubleshooting
+
+### Common Issues:
+1. **CORS errors**: Ensure FRONTEND_URL is correctly set in backend
+2. **PWA not installing**: Check manifest.json and service worker registration
+3. **Images not loading**: Verify proxy endpoints are working
+4. **OCR not working**: Ensure Tesseract.js loads properly on HTTPS
+
+### Logs:
+- Backend logs: Check Render dashboard logs
+- Frontend issues: Check browser developer console
+
+## API Endpoints Reference
+
+### Manga API
+- `GET /api/manga/search?site={site}&query={query}` - Search manga
+- `GET /api/manga/info?site={site}&url={url}` - Get manga info
+- `GET /api/manga/chapter?url={url}` - Get chapter images
+- `GET /api/manga/sites` - Get available manga sites
+
+### Translation API
+- `POST /api/translation/translate` - Translate text with DeepL
+- `POST /api/translation/dictionary` - Dictionary lookup via Jisho API
+
+## Maintenance Notes
+
+- Backend: Monitor Render logs for errors
+- Frontend: GitHub Pages auto-deploys on push to main branch
+- API limits: DeepL free tier has monthly character limits
+- Updates: Push changes to respective repositories and they'll auto-deploy

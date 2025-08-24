@@ -1,0 +1,237 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useLibrary } from '../contexts/LibraryContext';
+import apiService from '../services/apiService';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+const MangaDetailPage = () => {
+  const { site, id } = useParams();
+  const navigate = useNavigate();
+  const { addManga, removeManga, isMangaInLibrary } = useLibrary();
+  
+  const [manga, setManga] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const isInLibrary = manga ? isMangaInLibrary(manga.id) : false;
+
+  useEffect(() => {
+    loadMangaDetails();
+  }, [site, id]);
+
+  const loadMangaDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // For now, create a mock manga object
+      // In production, this would call the API
+      const mockManga = {
+        id: decodeURIComponent(id),
+        title: `Manga ${decodeURIComponent(id)}`,
+        author: 'Unknown Author',
+        status: 'Ongoing',
+        description: 'This is a placeholder description. The actual manga details will be loaded from the API.',
+        coverImage: null,
+        genres: ['Action', 'Adventure'],
+        rating: 8.5,
+        chaptersCount: 100,
+        site: site,
+        chapters: Array.from({ length: 20 }, (_, i) => ({
+          number: i + 1,
+          title: `Chapter ${i + 1}`,
+          url: `https://example.com/chapter/${i + 1}`,
+          publishedAt: new Date(Date.now() - (19 - i) * 24 * 60 * 60 * 1000).toISOString()
+        }))
+      };
+
+      setManga(mockManga);
+    } catch (err) {
+      setError('Failed to load manga details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLibraryToggle = () => {
+    if (isInLibrary) {
+      removeManga(manga.id);
+    } else {
+      addManga(manga);
+    }
+  };
+
+  const handleChapterClick = (chapter) => {
+    navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.number}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-manga-dark flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-manga-text/70 mt-4">Loading manga details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !manga) {
+    return (
+      <div className="min-h-screen bg-manga-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <h3 className="text-xl font-semibold text-manga-text mb-2">
+            Error loading manga
+          </h3>
+          <p className="text-manga-text/70 mb-6">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-manga-accent hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-manga-dark pb-20">
+      {/* Header */}
+      <header className="bg-manga-gray shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-manga-accent hover:text-manga-text transition-colors mb-4"
+          >
+            ← Back
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Manga Info */}
+        <div className="bg-manga-gray rounded-lg p-6 mb-6">
+          <div className="flex gap-6">
+            {/* Cover */}
+            <div className="w-32 h-44 bg-manga-light rounded overflow-hidden flex-shrink-0">
+              {manga.coverImage ? (
+                <img
+                  src={manga.coverImage}
+                  alt={manga.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl">
+                  📚
+                </div>
+              )}
+            </div>
+
+            {/* Details */}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-manga-text mb-2">
+                {manga.title}
+              </h1>
+              
+              {manga.author && (
+                <p className="text-manga-text/70 mb-2">by {manga.author}</p>
+              )}
+
+              <div className="flex items-center gap-4 mb-4">
+                {manga.status && (
+                  <span className={`text-sm px-3 py-1 rounded-full ${
+                    manga.status.toLowerCase() === 'completed' 
+                      ? 'bg-green-900/30 text-green-400'
+                      : 'bg-blue-900/30 text-blue-400'
+                  }`}>
+                    {manga.status}
+                  </span>
+                )}
+                
+                {manga.rating && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400">★</span>
+                    <span className="text-manga-text">{manga.rating.toFixed(1)}</span>
+                  </div>
+                )}
+              </div>
+
+              {manga.genres && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {manga.genres.map((genre, index) => (
+                    <span
+                      key={index}
+                      className="text-sm bg-manga-light text-manga-text px-2 py-1 rounded"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={handleLibraryToggle}
+                className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-colors ${
+                  isInLibrary
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-manga-accent hover:bg-blue-600 text-white'
+                }`}
+              >
+                {isInLibrary ? '❤️ Remove from Library' : '💝 Add to Library'}
+              </button>
+            </div>
+          </div>
+
+          {manga.description && (
+            <div className="mt-6 pt-6 border-t border-manga-light">
+              <h3 className="font-semibold text-manga-text mb-2">Description</h3>
+              <p className="text-manga-text/70 leading-relaxed">
+                {manga.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Chapters List */}
+        <div className="bg-manga-gray rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-manga-text mb-4">
+            Chapters ({manga.chapters?.length || 0})
+          </h2>
+          
+          {manga.chapters && manga.chapters.length > 0 ? (
+            <div className="space-y-2">
+              {manga.chapters.map((chapter) => (
+                <div
+                  key={chapter.number}
+                  onClick={() => handleChapterClick(chapter)}
+                  className="flex items-center justify-between p-3 hover:bg-manga-light rounded-lg cursor-pointer transition-colors touch-improvement"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-medium text-manga-text">
+                      Chapter {chapter.number}
+                      {chapter.title && ` - ${chapter.title}`}
+                    </h4>
+                    {chapter.publishedAt && (
+                      <p className="text-sm text-manga-text/70">
+                        {new Date(chapter.publishedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-manga-accent">→</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-manga-text/70 text-center py-8">
+              No chapters available
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MangaDetailPage;
