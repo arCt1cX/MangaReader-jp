@@ -17,15 +17,13 @@ jobs:
     - name: Setup Node.js 🏗️
       uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '18'
 
     - name: Delete lock file 🗑️
       run: rm -f package-lock.json
 
     - name: Install dependencies 📦
-      run: |
-        npm install --legacy-peer-deps
-        npm install ajv@^8.0.0 --legacy-peer-deps
+      run: npm install --legacy-peer-deps
 
     - name: Build 🔧
       run: npm run build
