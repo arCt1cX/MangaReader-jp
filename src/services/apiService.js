@@ -1,4 +1,4 @@
-import { API_ENDPOINTS, REQUEST_CONFIG } from '../config/api';
+import API_BASE_URL, { API_ENDPOINTS, REQUEST_CONFIG } from '../config/api';
 
 class ApiService {
   async request(url, options = {}) {
@@ -39,16 +39,13 @@ class ApiService {
     const result = await this.request(`${API_ENDPOINTS.SEARCH_MANGA}?${params}`);
     console.log('Search result:', result);
     
-    // Log cover image URLs for debugging and convert proxy URLs back to direct URLs
+    // Log cover image URLs for debugging and convert relative proxy URLs to absolute URLs
     if (result?.data?.manga) {
       result.data.manga.forEach((manga, index) => {
-        // Convert proxy URLs back to direct URLs temporarily
+        // Convert relative proxy URLs to absolute URLs
         if (manga.coverImage && manga.coverImage.startsWith('/api/manga/image-proxy')) {
-          const urlMatch = manga.coverImage.match(/url=([^&]+)/);
-          if (urlMatch) {
-            manga.coverImage = decodeURIComponent(urlMatch[1]);
-            console.log(`Converted proxy URL to direct URL for ${manga.title}: ${manga.coverImage}`);
-          }
+          manga.coverImage = `${API_BASE_URL}${manga.coverImage}`;
+          console.log(`Converted relative proxy URL to absolute URL for ${manga.title}: ${manga.coverImage}`);
         }
         
         if (index < 3) { // Log first 3 for debugging
