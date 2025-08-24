@@ -1,18 +1,8 @@
 name: Deploy React App to GitHub Pages
 
 on:
-    - name: Setup Pages 📄
-      uses: actions/configure-pages@v4
-
-    - name: Upload artifact 📤
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./build
-
-    - name: Deploy to GitHub Pages 🚀
-      id: deployment
-      if: github.ref == 'refs/heads/main'
-      uses: actions/deploy-pages@v4 branches: [ main ]
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -55,15 +45,15 @@ jobs:
         CI: false
         GENERATE_SOURCEMAP: false
 
-    - name: Setup Pages �
-      uses: actions/configure-pages@v3
+    - name: Setup Pages 📄
+      uses: actions/configure-pages@v4
 
     - name: Upload artifact 📤
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v3
       with:
         path: ./build
 
     - name: Deploy to GitHub Pages 🚀
       id: deployment
       if: github.ref == 'refs/heads/main'
-      uses: actions/deploy-pages@v2
+      uses: actions/deploy-pages@v4
