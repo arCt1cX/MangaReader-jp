@@ -24,29 +24,15 @@ const MangaDetailPage = () => {
       setLoading(true);
       setError(null);
       
-      // For now, create a mock manga object
-      // In production, this would call the API
-      const mockManga = {
-        id: decodeURIComponent(id),
-        title: `Manga ${decodeURIComponent(id)}`,
-        author: 'Unknown Author',
-        status: 'Ongoing',
-        description: 'This is a placeholder description. The actual manga details will be loaded from the API.',
-        coverImage: null,
-        genres: ['Action', 'Adventure'],
-        rating: 8.5,
-        chaptersCount: 100,
-        site: site,
-        chapters: Array.from({ length: 20 }, (_, i) => ({
-          number: i + 1,
-          title: `Chapter ${i + 1}`,
-          url: `https://example.com/chapter/${i + 1}`,
-          publishedAt: new Date(Date.now() - (19 - i) * 24 * 60 * 60 * 1000).toISOString()
-        }))
-      };
-
-      setManga(mockManga);
-    } catch (err) {
+      const response = await apiService.getMangaInfo(site, id);
+      
+      if (response.success) {
+        setManga(response.data);
+      } else {
+        setError(response.error || 'Failed to load manga details');
+      }
+    } catch (error) {
+      console.error('Error loading manga details:', error);
       setError('Failed to load manga details');
     } finally {
       setLoading(false);
@@ -62,7 +48,7 @@ const MangaDetailPage = () => {
   };
 
   const handleChapterClick = (chapter) => {
-    navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.number}`);
+    navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.id || chapter.number}`);
   };
 
   if (loading) {

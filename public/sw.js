@@ -14,10 +14,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Skip caching for external manga images and API calls
-  if (event.request.url.includes('uploads.mangadx.org') || 
+  // Skip caching for external manga images, API calls, and placeholder images
+  if (event.request.url.includes('uploads.mangadex.org') || 
       event.request.url.includes('manga-reader-server') ||
-      event.request.url.includes('api/')) {
+      event.request.url.includes('api/') ||
+      event.request.url.includes('via.placeholder.com')) {
     return;
   }
 

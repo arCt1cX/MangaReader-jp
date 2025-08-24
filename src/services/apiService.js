@@ -38,18 +38,19 @@ class ApiService {
     return this.request(`${API_ENDPOINTS.SEARCH_MANGA}?${params}`);
   }
 
-  async getMangaInfo(site, url) {
+  async getMangaInfo(site, id) {
     const params = new URLSearchParams({
       site,
-      url
+      id
     });
     
     return this.request(`${API_ENDPOINTS.MANGA_INFO}?${params}`);
   }
 
-  async getChapterImages(url) {
+  async getChapterImages(chapterId, site) {
     const params = new URLSearchParams({
-      url
+      chapterId,
+      site
     });
     
     return this.request(`${API_ENDPOINTS.CHAPTER_IMAGES}?${params}`);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReaderPage = () => {
@@ -27,16 +28,15 @@ const ReaderPage = () => {
       setLoading(true);
       setError(null);
       
-      // Mock pages for now
-      const mockPages = Array.from({ length: 15 }, (_, i) => ({
-        number: i + 1,
-        imageUrl: `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${i + 1}`,
-        width: 800,
-        height: 1200
-      }));
-
-      setPages(mockPages);
+      const response = await apiService.getChapterImages(chapter, site);
+      
+      if (response.success) {
+        setPages(response.data.pages);
+      } else {
+        setError(response.error || 'Failed to load chapter pages');
+      }
     } catch (err) {
+      console.error('Error loading chapter pages:', err);
       setError('Failed to load chapter pages');
     } finally {
       setLoading(false);
