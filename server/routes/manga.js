@@ -52,12 +52,22 @@ router.get('/search/:site', async (req, res) => {
     const { site } = req.params;
     const { query } = req.query;
     const parser = parsers[site];
-    
+
     if (!parser) {
-      return res.status(400).json({ error: 'Unsupported manga site' });
+      return res.status(400).json({ error: `Unsupported manga site: ${site}` });
     }
 
-    const results = await parser.searchManga(query);
+    if (!query || typeof query !== 'string' || query.trim() === '') {
+      return res.status(400).json({ error: 'Missing or empty query parameter' });
+    }
+
+    let results;
+    try {
+      results = await parser.searchManga(query);
+    } catch (parserError) {
+      console.error(`Error in parser for site ${site}:`, parserError);
+      return res.status(500).json({ error: `Failed to search manga on ${site}` });
+    }
     res.json(results);
   } catch (error) {
     console.error('Error searching manga:', error);

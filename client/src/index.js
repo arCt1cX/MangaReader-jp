@@ -13,7 +13,12 @@ root.render(
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    // Dynamically determine the correct path for sw.js
+    let swPath = '/sw.js';
+    if (window.location.pathname.startsWith('/MangaReader-jp')) {
+      swPath = '/MangaReader-jp/sw.js';
+    }
+    navigator.serviceWorker.register(swPath)
       .then((registration) => {
         console.log('SW registered: ', registration);
       })
