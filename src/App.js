@@ -26,7 +26,17 @@ function AppContent() {
       amoled: '#000000'
     };
     
-    document.body.style.backgroundColor = themes[settings.theme] || themes.standard;
+    const bgColor = themes[settings.theme] || themes.standard;
+    document.body.style.backgroundColor = bgColor;
+    
+    // Also apply to html for iOS PWA
+    document.documentElement.style.backgroundColor = bgColor;
+    
+    // Set theme color meta tag for iOS status bar
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', bgColor);
+    }
   }, [settings.theme]);
   
   return (

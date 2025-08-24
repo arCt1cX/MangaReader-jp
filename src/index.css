@@ -10,6 +10,20 @@
   box-sizing: border-box;
 }
 
+/* Fix iOS overscroll and viewport issues */
+html {
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  overscroll-behavior-y: none;
+  /* Prevent pull-to-refresh on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -18,6 +32,12 @@ body {
   background-color: #111827;
   color: #f9fafb;
   overflow-x: hidden;
+  /* Prevent iOS overscroll bounce */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* Ensure body takes full height */
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
 }
 
 /* Scrollbar styling */
@@ -279,4 +299,59 @@ html {
 
 .theme-light .text-white\/70 {
   color: var(--text-secondary) !important;
+}
+
+/* PWA iOS fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific fixes */
+  html {
+    height: -webkit-fill-available;
+  }
+  
+  body {
+    min-height: -webkit-fill-available;
+    /* Prevent iOS bounce scroll */
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
+  
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Additional PWA viewport fixes */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height */
+}
+
+/* Ensure app container prevents overscroll */
+#root {
+  overscroll-behavior: none;
+  background-color: inherit;
+}
+
+/* Prevent overscroll in continuous scroll mode */
+.min-h-screen.bg-black {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS Safari specific overscroll fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  body {
+    overscroll-behavior-y: none;
+    /* Additional iOS fix */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent elastic scrolling */
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+  }
 }
