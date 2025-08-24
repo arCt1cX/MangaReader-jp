@@ -4,7 +4,7 @@ import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReaderPage = () => {
-  const { site, id, chapter } = useParams();
+  const { site, chapter } = useParams();
   const navigate = useNavigate();
   
   const [pages, setPages] = useState([]);
@@ -12,16 +12,6 @@ const ReaderPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showUI, setShowUI] = useState(true);
-
-  useEffect(() => {
-    loadChapterPages();
-  }, [loadChapterPages]);
-
-  useEffect(() => {
-    // Auto-hide UI after 3 seconds
-    const timer = setTimeout(() => setShowUI(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const loadChapterPages = useCallback(async () => {
     try {
@@ -43,17 +33,27 @@ const ReaderPage = () => {
     }
   }, [site, chapter]);
 
-  const goToNextPage = () => {
+  useEffect(() => {
+    loadChapterPages();
+  }, [loadChapterPages]);
+
+  useEffect(() => {
+    // Auto-hide UI after 3 seconds
+    const timer = setTimeout(() => setShowUI(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const goToNextPage = useCallback(() => {
     if (currentPage < pages.length - 1) {
       setCurrentPage(currentPage + 1);
     }
-  };
+  }, [currentPage, pages.length]);
 
-  const goToPrevPage = () => {
+  const goToPrevPage = useCallback(() => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
-  };
+  }, [currentPage]);
 
   const handleImageClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -83,7 +83,7 @@ const ReaderPage = () => {
       default:
         break;
     }
-  }, [currentPage, pages.length, navigate]);
+  }, [goToPrevPage, goToNextPage, navigate]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);

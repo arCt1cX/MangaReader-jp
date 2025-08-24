@@ -14,13 +14,6 @@ const SearchPage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    // Auto-search popular manga when page loads
-    if (!query) {
-      performSearch('popular', 1, true);
-    }
-  }, [site, performSearch, query]);
-
   const performSearch = useCallback(async (searchQuery, searchPage = 1, replace = false) => {
     if (!searchQuery.trim() && searchQuery !== 'popular') return;
 
@@ -48,6 +41,13 @@ const SearchPage = () => {
       setLoading(false);
     }
   }, [site]);
+
+  useEffect(() => {
+    // Auto-search popular manga when page loads
+    if (!query) {
+      performSearch('popular', 1, true);
+    }
+  }, [site, performSearch, query]);
 
   const handleSearch = (e) => {
     e.preventDefault();
