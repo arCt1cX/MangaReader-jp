@@ -63,7 +63,15 @@ class ApiService {
       id
     });
     
-    return this.request(`${API_ENDPOINTS.MANGA_INFO}?${params}`);
+    const result = await this.request(`${API_ENDPOINTS.MANGA_INFO}?${params}`);
+    
+    // Fix cover image URL if it's a relative proxy URL
+    if (result?.success && result?.data?.coverImage && result.data.coverImage.startsWith('/api/manga/image-proxy')) {
+      result.data.coverImage = `${API_BASE_URL}${result.data.coverImage}`;
+      console.log(`Fixed manga info cover image URL: ${result.data.coverImage}`);
+    }
+    
+    return result;
   }
 
   async getChapterImages(chapterId, site) {
