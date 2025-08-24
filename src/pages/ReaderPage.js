@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,7 +15,7 @@ const ReaderPage = () => {
 
   useEffect(() => {
     loadChapterPages();
-  }, [site, id, chapter]);
+  }, [loadChapterPages]);
 
   useEffect(() => {
     // Auto-hide UI after 3 seconds
@@ -23,7 +23,7 @@ const ReaderPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const loadChapterPages = async () => {
+  const loadChapterPages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -41,7 +41,7 @@ const ReaderPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [site, chapter]);
 
   const goToNextPage = () => {
     if (currentPage < pages.length - 1) {
@@ -69,7 +69,7 @@ const ReaderPage = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = useCallback((e) => {
     switch (e.key) {
       case 'ArrowLeft':
         goToPrevPage();
@@ -83,12 +83,12 @@ const ReaderPage = () => {
       default:
         break;
     }
-  };
+  }, [currentPage, pages.length, navigate]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage]);
+  }, [handleKeyPress]);
 
   if (loading) {
     return (

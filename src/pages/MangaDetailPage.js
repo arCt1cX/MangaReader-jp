@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
@@ -15,11 +15,7 @@ const MangaDetailPage = () => {
 
   const isInLibrary = manga ? isMangaInLibrary(manga.id) : false;
 
-  useEffect(() => {
-    loadMangaDetails();
-  }, [site, id]);
-
-  const loadMangaDetails = async () => {
+  const loadMangaDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -37,7 +33,11 @@ const MangaDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [site, id]);
+
+  useEffect(() => {
+    loadMangaDetails();
+  }, [loadMangaDetails]);
 
   const handleLibraryToggle = () => {
     if (isInLibrary) {

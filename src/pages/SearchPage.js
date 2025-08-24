@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -19,9 +19,9 @@ const SearchPage = () => {
     if (!query) {
       performSearch('popular', 1, true);
     }
-  }, [site]);
+  }, [site, performSearch, query]);
 
-  const performSearch = async (searchQuery, searchPage = 1, replace = false) => {
+  const performSearch = useCallback(async (searchQuery, searchPage = 1, replace = false) => {
     if (!searchQuery.trim() && searchQuery !== 'popular') return;
 
     setLoading(true);
@@ -47,7 +47,7 @@ const SearchPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [site]);
 
   const handleSearch = (e) => {
     e.preventDefault();
