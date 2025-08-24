@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { LibraryProvider } from './contexts/LibraryContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import HomePage from './pages/HomePage';
@@ -14,7 +14,7 @@ function App() {
   return (
     <SettingsProvider>
       <LibraryProvider>
-        <Router basename="/MangaReader-jp">
+        <Router>
           <div className="min-h-screen bg-manga-dark text-manga-text">
             <Routes>
               <Route path="/" element={<HomePage />} />
