@@ -30,12 +30,15 @@ const CachedImage = ({
         const cachedUrl = await imageCache.get(src);
         
         if (cachedUrl && isMounted) {
+          // Image is already cached, use it directly
           setImageSrc(cachedUrl);
           blobUrlToCleanup = cachedUrl;
+          console.log(`🖼️ Using cached image: ${src.slice(0, 50)}...`);
           return;
         }
 
         // If not cached, download and cache it
+        console.log(`🖼️ Downloading and caching image: ${src.slice(0, 50)}...`);
         const newCachedUrl = await imageCache.cacheImage(src);
         
         if (newCachedUrl && isMounted) {
@@ -43,6 +46,7 @@ const CachedImage = ({
           blobUrlToCleanup = newCachedUrl;
         } else if (isMounted) {
           // Fallback to original URL if caching fails
+          console.log(`🖼️ Caching failed, using original URL: ${src.slice(0, 50)}...`);
           setImageSrc(src);
         }
       } catch (err) {
