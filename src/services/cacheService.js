@@ -3,12 +3,11 @@ class CacheService {
   constructor() {
     this.cache = new Map();
     this.CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
-    this.CACHE_VERSION = 'v2'; // Increment to invalidate old cache
   }
 
   // Generate cache key for a chapter
   getCacheKey(mangaId, chapterNumber) {
-    return `${this.CACHE_VERSION}_${mangaId}_${chapterNumber}`;
+    return `${mangaId}_${chapterNumber}`;
   }
 
   // Check if item is in cache and not expired

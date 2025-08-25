@@ -16,7 +16,6 @@ const ReaderPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showUI, setShowUI] = useState(true);
-  const [chapterType, setChapterType] = useState(null); // 'manga' or 'manhwa'
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
@@ -101,7 +100,6 @@ const ReaderPage = () => {
       if (cachedData && cachedData.pages) {
         console.log('📦 Using cached chapter data');
         setPages(cachedData.pages);
-        setChapterType(cachedData.type); // Set the cached chapter type
         setLoading(false);
         return;
       }
@@ -112,7 +110,6 @@ const ReaderPage = () => {
       
       if (response.success) {
         setPages(response.data.pages);
-        setChapterType(response.data.type); // Set whether it's manga or manhwa
         // Cache the response for future use
         chapterCache.set(id, chapter, response.data);
       } else {
@@ -298,11 +295,6 @@ const ReaderPage = () => {
                     : `Page ${currentPage + 1} of ${pages.length}`
                 }
               </p>
-              {chapterType === 'manhwa' && settings.readingMode !== 'scroll' && (
-                <p className="text-xs text-yellow-400 mt-1">
-                  📱 Manhwa detected - try Scroll mode in Settings for better experience
-                </p>
-              )}
             </div>
             <div className="flex items-center gap-2">
               {nextChapter && (
