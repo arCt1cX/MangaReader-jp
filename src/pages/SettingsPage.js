@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
+import imageCacheService from '../services/imageCacheService';
 
 const SettingsPage = () => {
   const { 
@@ -16,11 +17,13 @@ const SettingsPage = () => {
   } = useSettings();
 
   const [cacheStats, setCacheStats] = useState({ count: 0, totalSizeMB: '0.00' });
+  const [imageCacheStats, setImageCacheStats] = useState({ valid: 0, total: 0 });
 
   // Update cache stats on component mount and periodically
   useEffect(() => {
     const updateStats = () => {
       setCacheStats(getCacheStats());
+      setImageCacheStats(imageCacheService.getStats());
     };
 
     updateStats(); // Initial load
@@ -48,6 +51,14 @@ const SettingsPage = () => {
       const clearedStats = clearCache();
       setCacheStats({ count: 0, totalSizeMB: '0.00' });
       alert(`Cache cleared! Freed ${clearedStats.totalSizeMB} MB of memory.`);
+    }
+  };
+
+  const handleClearImageCache = () => {
+    if (window.confirm(`Clear ${imageCacheStats.valid} cached cover images? They will be reloaded when needed.`)) {
+      const clearedStats = imageCacheService.clear();
+      setImageCacheStats({ valid: 0, total: 0 });
+      alert(`Image cache cleared! Removed ${clearedStats.total} cached images.`);
     }
   };
 
@@ -327,13 +338,16 @@ const SettingsPage = () => {
           </h2>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-manga-light rounded-lg p-4">
                 <div className="text-2xl font-bold text-manga-accent">
                   {cacheStats.count}
                 </div>
                 <div className="text-sm text-manga-text/70">
                   Cached Chapters
+                </div>
+                <div className="text-xs text-manga-text/50 mt-1">
+                  30 min duration
                 </div>
               </div>
               
@@ -342,24 +356,54 @@ const SettingsPage = () => {
                   {cacheStats.totalSizeMB} MB
                 </div>
                 <div className="text-sm text-manga-text/70">
-                  Memory Used
+                  Chapter Data
+                </div>
+                <div className="text-xs text-manga-text/50 mt-1">
+                  Memory used
+                </div>
+              </div>
+
+              <div className="bg-manga-light rounded-lg p-4">
+                <div className="text-2xl font-bold text-green-500">
+                  {imageCacheStats.valid}
+                </div>
+                <div className="text-sm text-manga-text/70">
+                  Cached Images
+                </div>
+                <div className="text-xs text-manga-text/50 mt-1">
+                  7 day duration
+                </div>
+              </div>
+
+              <div className="bg-manga-light rounded-lg p-4">
+                <div className="text-2xl font-bold text-green-500">
+                  {imageCacheStats.total - imageCacheStats.valid}
+                </div>
+                <div className="text-sm text-manga-text/70">
+                  Expired Images
+                </div>
+                <div className="text-xs text-manga-text/50 mt-1">
+                  Auto cleanup
                 </div>
               </div>
             </div>
 
             <div className="text-sm text-manga-text/70">
               <p className="mb-2">
-                📦 <strong>Cache Duration:</strong> 30 minutes per chapter
+                📦 <strong>Chapter Cache:</strong> 30 minutes per chapter - Fast re-reading
+              </p>
+              <p className="mb-2">
+                🖼️ <strong>Image Cache:</strong> 7 days for cover images - Faster browsing
               </p>
               <p className="mb-2">
                 🚀 <strong>Benefits:</strong> Faster loading, reduced bandwidth usage
               </p>
               <p>
-                🔄 <strong>Auto-cleanup:</strong> Expired chapters are automatically removed
+                🔄 <strong>Auto-cleanup:</strong> Expired content is automatically removed
               </p>
             </div>
 
-            <div className="pt-4 border-t border-manga-light">
+            <div className="pt-4 border-t border-manga-light flex flex-wrap gap-3">
               <button
                 onClick={handleClearCache}
                 disabled={cacheStats.count === 0}
@@ -369,11 +413,24 @@ const SettingsPage = () => {
                     : 'bg-orange-600 hover:bg-orange-700 text-white'
                 }`}
               >
-                🗑️ Clear Cache ({cacheStats.count} chapters)
+                🗑️ Clear Chapters ({cacheStats.count})
               </button>
-              {cacheStats.count === 0 && (
-                <p className="text-xs text-manga-text/50 mt-2">
-                  No cached chapters to clear
+
+              <button
+                onClick={handleClearImageCache}
+                disabled={imageCacheStats.total === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  imageCacheStats.total === 0
+                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                🖼️ Clear Images ({imageCacheStats.total})
+              </button>
+              
+              {(cacheStats.count === 0 && imageCacheStats.total === 0) && (
+                <p className="text-xs text-manga-text/50 w-full mt-2">
+                  No cached content to clear
                 </p>
               )}
             </div>

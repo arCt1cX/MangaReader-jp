@@ -1,8 +1,43 @@
-// Simple cache service for manga chapters
+// Simple cache service for manga chapters with persistent storage
 class CacheService {
   constructor() {
-    this.cache = new Map();
     this.CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+    this.STORAGE_KEY = 'manga_chapter_cache';
+    this.initializeCache();
+  }
+
+  // Initialize cache from localStorage
+  initializeCache() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      this.cache = stored ? new Map(JSON.parse(stored)) : new Map();
+      
+      // Clean up expired items on startup
+      this.clearExpired();
+      
+      console.log(`📦 Cache initialized with ${this.cache.size} items`);
+    } catch (error) {
+      console.warn('Failed to load cache from localStorage:', error);
+      this.cache = new Map();
+    }
+  }
+
+  // Save cache to localStorage
+  saveCache() {
+    try {
+      const cacheArray = Array.from(this.cache.entries());
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cacheArray));
+    } catch (error) {
+      console.warn('Failed to save cache to localStorage:', error);
+      // If storage is full, try clearing expired items and retry
+      this.clearExpired();
+      try {
+        const cacheArray = Array.from(this.cache.entries());
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cacheArray));
+      } catch (retryError) {
+        console.error('Failed to save cache even after cleanup:', retryError);
+      }
+    }
   }
 
   // Generate cache key for a chapter
@@ -37,15 +72,26 @@ class CacheService {
       timestamp: Date.now()
     });
     console.log(`💾 Cached ${key} (${data.pages?.length || 0} pages)`);
+    
+    // Save to persistent storage
+    this.saveCache();
   }
 
   // Clear expired items (optional cleanup)
   clearExpired() {
     const now = Date.now();
+    let removedCount = 0;
+    
     for (const [key, cached] of this.cache.entries()) {
       if (now - cached.timestamp > this.CACHE_DURATION) {
         this.cache.delete(key);
+        removedCount++;
       }
+    }
+    
+    if (removedCount > 0) {
+      console.log(`🗑️ Removed ${removedCount} expired cache entries`);
+      this.saveCache(); // Save after cleanup
     }
   }
 
@@ -92,6 +138,14 @@ class CacheService {
   clear() {
     const stats = this.getStats();
     this.cache.clear();
+    
+    // Clear from localStorage too
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear cache from localStorage:', error);
+    }
+    
     console.log(`🗑️ Cache cleared - freed ${stats.totalSizeMB} MB`);
     return stats;
   }

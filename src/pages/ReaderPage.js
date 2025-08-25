@@ -86,6 +86,12 @@ const ReaderPage = () => {
     }
   };
 
+  const goToMangaDetails = () => {
+    // Navigate directly to manga details page instead of going back in history
+    const mangaId = mangaData?.id || id; // fallback to URL param if no manga data
+    navigate(`/manga/${site}/${encodeURIComponent(mangaId)}`);
+  };
+
   const loadChapterPages = useCallback(async () => {
     try {
       setLoading(true);
@@ -263,7 +269,7 @@ const ReaderPage = () => {
           <h3 className="text-xl font-semibold mb-2">Error loading chapter</h3>
           <p className="text-white/70 mb-6">{error}</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={goToMangaDetails}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             Go Back
@@ -287,7 +293,7 @@ const ReaderPage = () => {
         <div className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur z-50 p-4">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             <button
-              onClick={() => navigate(-1)}
+              onClick={goToMangaDetails}
               className="text-white/70 hover:text-white transition-colors"
             >
               ← Back
@@ -429,7 +435,7 @@ const ReaderPage = () => {
           
           <div className="flex gap-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={goToMangaDetails}
               className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               ← Back to Chapters

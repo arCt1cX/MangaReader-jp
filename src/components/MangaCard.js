@@ -1,23 +1,12 @@
 import React, { useState } from 'react';
 import { useLibrary } from '../contexts/LibraryContext';
+import CachedImage from './CachedImage';
 
 const MangaCard = ({ manga, onClick, showProgress = false }) => {
   const { isMangaInLibrary, getMangaProgress } = useLibrary();
-  const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
   
   const isInLibrary = isMangaInLibrary(manga.id);
   const progress = getMangaProgress(manga.id);
-
-  const handleImageError = (e) => {
-    console.log('Image failed to load:', manga.coverImage, e);
-    setImageError(true);
-    setImageLoading(false);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-  };
 
   return (
     <div
@@ -26,37 +15,13 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
     >
       {/* Cover Image */}
       <div className="aspect-[3/4] bg-manga-light relative overflow-hidden">
-        {manga.coverImage && !imageError ? (
-          <>
-            {imageLoading && (
-              <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50 animate-pulse">
-                📚
-              </div>
-            )}
-            <img
-              src={manga.coverImage}
-              alt={manga.title}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                imageLoading ? 'opacity-0' : 'opacity-100'
-              }`}
-              loading="lazy"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              crossOrigin="anonymous"
-            />
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
-            📚
-          </div>
-        )}
-        
-        {/* Debug info - only show in development */}
-        {process.env.NODE_ENV === 'development' && imageError && manga.coverImage && (
-          <div className="absolute bottom-0 left-0 right-0 bg-red-500 text-white text-xs p-1 opacity-80">
-            IMG ERROR: {manga.coverImage.substring(0, 40)}...
-          </div>
-        )}
+        <CachedImage
+          src={manga.coverImage}
+          alt={manga.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fallbackSrc={null}
+          onError={(e) => console.log('Image failed to load:', manga.coverImage, e)}
+        />
         
         {/* Library Indicator */}
         {isInLibrary && (
