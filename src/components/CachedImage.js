@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import imageCache from '../services/imageCacheService';
 
 const CachedImage = ({ src, alt, className, onError, ...props }) => {
@@ -7,26 +7,7 @@ const CachedImage = ({ src, alt, className, onError, ...props }) => {
   const [error, setError] = useState(false);
   const imgRef = useRef(null);
 
-  useEffect(() => {
-    if (!src) {
-      setLoading(false);
-      setError(true);
-      return;
-    }
-
-    // Check cache first
-    const cachedImage = imageCache.get(src);
-    if (cachedImage) {
-      setImageSrc(cachedImage);
-      setLoading(false);
-      return;
-    }
-
-    // Load image and cache it
-    loadAndCacheImage(src);
-  }, [src]);
-
-  const loadAndCacheImage = async (imageUrl) => {
+  const loadAndCacheImage = useCallback(async (imageUrl) => {
     try {
       setLoading(true);
       setError(false);
@@ -56,7 +37,26 @@ const CachedImage = ({ src, alt, className, onError, ...props }) => {
       setLoading(false);
       if (onError) onError();
     }
-  };
+  }, [onError]);
+
+  useEffect(() => {
+    if (!src) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
+
+    // Check cache first
+    const cachedImage = imageCache.get(src);
+    if (cachedImage) {
+      setImageSrc(cachedImage);
+      setLoading(false);
+      return;
+    }
+
+    // Load image and cache it
+    loadAndCacheImage(src);
+  }, [src, loadAndCacheImage]);
 
   if (loading) {
     return (
