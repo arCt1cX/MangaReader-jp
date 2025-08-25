@@ -101,6 +101,7 @@ const ReaderPage = () => {
       if (cachedData && cachedData.pages) {
         console.log('📦 Using cached chapter data');
         setPages(cachedData.pages);
+        setChapterType(cachedData.type); // Set the cached chapter type
         setLoading(false);
         return;
       }
