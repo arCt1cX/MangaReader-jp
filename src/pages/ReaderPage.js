@@ -109,7 +109,7 @@ const ReaderPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [site, chapter, chapterUrl]);
+  }, [site, chapter, chapterUrl, chapterData?.id, chapterData?.number]);
 
   useEffect(() => {
     loadChapterPages();

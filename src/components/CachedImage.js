@@ -76,7 +76,7 @@ const CachedImage = ({
         URL.revokeObjectURL(imageSrc);
       }
     };
-  }, [src, chapterId, pageNumber]);
+  }, [src, chapterId, pageNumber, onError, imageSrc]);
 
   // Cleanup blob URL when component unmounts or imageSrc changes
   useEffect(() => {
