@@ -11,12 +11,10 @@ const CachedImage = ({
   ...props 
 }) => {
   const [imageSrc, setImageSrc] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!src) {
-      setIsLoading(false);
       setError(true);
       return;
     }
@@ -26,7 +24,6 @@ const CachedImage = ({
 
     const loadImage = async () => {
       try {
-        setIsLoading(true);
         setError(false);
 
         // Try to get from cache first
@@ -35,7 +32,6 @@ const CachedImage = ({
         if (cachedUrl && isMounted) {
           setImageSrc(cachedUrl);
           blobUrlToCleanup = cachedUrl;
-          setIsLoading(false);
           return;
         }
 
@@ -49,15 +45,10 @@ const CachedImage = ({
           // Fallback to original URL if caching fails
           setImageSrc(src);
         }
-
-        if (isMounted) {
-          setIsLoading(false);
-        }
       } catch (err) {
         console.warn('CachedImage error:', err);
         if (isMounted) {
           setImageSrc(src); // Fallback to original URL
-          setIsLoading(false);
         }
       }
     };
@@ -74,13 +65,11 @@ const CachedImage = ({
   }, [src]); // Only depend on src, not imageSrc
 
   const handleLoad = (e) => {
-    setIsLoading(false);
     setError(false);
     if (onLoad) onLoad(e);
   };
 
   const handleError = (e) => {
-    setIsLoading(false);
     setError(true);
     if (onError) onError(e);
   };
