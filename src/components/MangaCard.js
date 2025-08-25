@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLibrary } from '../contexts/LibraryContext';
 import CachedImage from './CachedImage';
+import Icon from './Icon';
 
 const MangaCard = ({ manga, onClick, showProgress = false }) => {
   const { isMangaInLibrary, getMangaProgress } = useLibrary();
@@ -30,8 +31,8 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
         {manga.coverImage ? (
           <>
             {imageLoading && (
-              <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50 animate-pulse">
-                📚
+              <div className="w-full h-full flex items-center justify-center text-manga-text/50 animate-pulse">
+                <Icon name="book" size={48} />
               </div>
             )}
             <CachedImage
@@ -45,15 +46,15 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
               onLoad={handleImageLoad}
               crossOrigin="anonymous"
               fallback={
-                <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
-                  📚
+                <div className="w-full h-full flex items-center justify-center text-manga-text/50">
+                  <Icon name="book" size={48} />
                 </div>
               }
             />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
-            📚
+          <div className="w-full h-full flex items-center justify-center text-manga-text/50">
+            <Icon name="book" size={48} />
           </div>
         )}
         
@@ -66,8 +67,8 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
         
         {/* Library Indicator */}
         {isInLibrary && (
-          <div className="absolute top-2 right-2 bg-manga-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-            ✓
+          <div className="absolute top-2 right-2 bg-manga-accent text-white rounded-full w-6 h-6 flex items-center justify-center">
+            <Icon name="check" size={12} />
           </div>
         )}
 
