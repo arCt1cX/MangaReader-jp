@@ -75,13 +75,17 @@ const ReaderPage = () => {
 
   const goToNextChapter = () => {
     if (nextChapter) {
+      // Explicitly reset to first page before navigation
+      setCurrentPage(0);
+      
       const mangaId = mangaData?.id || id; // fallback to URL param if no manga data
       navigate(`/reader/${site}/${encodeURIComponent(mangaId)}/${nextChapter.id || nextChapter.number}`, {
         state: { 
           chapterUrl: nextChapter.url,
           chapterData: nextChapter,
           mangaData: mangaData,
-          from: location.state?.from // Preserve the original referrer
+          from: location.state?.from, // Preserve the original referrer
+          resetToFirstPage: true // Flag to ensure we reset to first page
         }
       });
     }
@@ -103,6 +107,9 @@ const ReaderPage = () => {
       setLoading(true);
       setError(null);
       
+      // ALWAYS reset to first page when loading any chapter
+      setCurrentPage(0);
+      
       // Use chapter URL from navigation state if available, otherwise fall back to chapter ID
       const chapterIdentifier = chapterUrl || chapter;
       console.log('Loading chapter with identifier:', chapterIdentifier);
@@ -111,7 +118,7 @@ const ReaderPage = () => {
       // Check cache first
       const cachedData = chapterCache.get(id, chapter);
       if (cachedData && cachedData.pages) {
-        console.log('📦 Using cached chapter data');
+        console.log('📦 Using cached chapter data - resetting to page 0');
         setPages(cachedData.pages);
         setContentFormat(cachedData.format || 'manga'); // Set format from cache
         setLoading(false);
@@ -139,8 +146,6 @@ const ReaderPage = () => {
   }, [site, id, chapter, chapterUrl]);
 
   useEffect(() => {
-    // Reset to first page when chapter changes
-    setCurrentPage(0);
     loadChapterPages();
   }, [loadChapterPages]);
 
