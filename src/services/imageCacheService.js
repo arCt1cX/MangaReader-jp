@@ -61,6 +61,7 @@ class ImageCacheService {
   getCachedImageUrl(originalUrl) {
     // If URL is already going through image proxy, don't add cache parameters
     if (originalUrl.includes('/api/manga/image-proxy')) {
+      console.log('🖼️ Using proxy URL (browser cached):', originalUrl.substring(0, 80) + '...');
       return originalUrl;
     }
 
@@ -70,23 +71,31 @@ class ImageCacheService {
     if (!metadata || Date.now() - metadata.timestamp > this.CACHE_DURATION) {
       // Not cached or expired, return original URL with cache buster to ensure fresh fetch
       const separator = originalUrl.includes('?') ? '&' : '?';
+      console.log('🔄 Fetching fresh image:', originalUrl.substring(0, 80) + '...');
       return `${originalUrl}${separator}_cb=${Date.now()}`;
     }
 
     // Cached and valid, return URL with cache timestamp to leverage browser cache
     const separator = originalUrl.includes('?') ? '&' : '?';
+    console.log('✅ Using cached image:', originalUrl.substring(0, 80) + '...');
     return `${originalUrl}${separator}_cache=${metadata.timestamp}`;
   }
 
   // Mark image as cached
   markAsCached(imageUrl) {
+    // Don't track proxy images in our custom cache (they're browser cached)
+    if (imageUrl.includes('/api/manga/image-proxy')) {
+      console.log('🖼️ Skipping cache tracking for proxy image (browser handles it)');
+      return;
+    }
+
     const key = this.getCacheKey(imageUrl);
     this.cacheMetadata.set(key, {
       url: imageUrl,
       timestamp: Date.now()
     });
     this.saveCacheMetadata();
-    console.log(`🖼️ Marked image as cached: ${imageUrl.substring(0, 50)}...`);
+    console.log(`✅ Marked non-proxy image as cached: ${imageUrl.substring(0, 50)}...`);
   }
 
   // Clear expired cache entries

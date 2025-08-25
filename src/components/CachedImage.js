@@ -31,8 +31,9 @@ const CachedImage = ({
     setIsLoading(false);
     setImageError(false);
     
-    // Mark image as successfully cached
-    if (src) {
+    // Only track non-proxy images in our custom cache service
+    // Proxy images are already cached by browser with proper headers
+    if (src && !src.includes('/api/manga/image-proxy')) {
       imageCacheService.markAsCached(src);
     }
     

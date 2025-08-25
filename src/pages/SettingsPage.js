@@ -368,10 +368,10 @@ const SettingsPage = () => {
                   {imageCacheStats.valid}
                 </div>
                 <div className="text-sm text-manga-text/70">
-                  Cached Images
+                  Custom Cached Images
                 </div>
                 <div className="text-xs text-manga-text/50 mt-1">
-                  7 day duration
+                  Non-proxy images only
                 </div>
               </div>
 
@@ -393,7 +393,10 @@ const SettingsPage = () => {
                 📦 <strong>Chapter Cache:</strong> 30 minutes per chapter - Fast re-reading
               </p>
               <p className="mb-2">
-                🖼️ <strong>Image Cache:</strong> 7 days for cover images - Faster browsing
+                🖼️ <strong>Cover Images:</strong> Cached by browser for 7 days (automatic)
+              </p>
+              <p className="mb-2">
+                📷 <strong>Custom Cache:</strong> Tracks non-proxy images only
               </p>
               <p className="mb-2">
                 🚀 <strong>Benefits:</strong> Faster loading, reduced bandwidth usage
