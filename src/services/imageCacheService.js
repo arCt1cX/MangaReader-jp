@@ -9,6 +9,27 @@ class ImageCacheService {
     this.initPromise = this.initDB();
   }
 
+  // Normalize URL by removing timestamp parameters
+  normalizeUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      // For mangaworld URLs, remove the timestamp parameter after the image extension
+      if (urlObj.searchParams.has('url')) {
+        const encodedUrl = urlObj.searchParams.get('url');
+        const decodedUrl = decodeURIComponent(encodedUrl);
+        // Remove timestamp (everything after the ? in the original image URL)
+        const normalizedImageUrl = decodedUrl.split('?')[0];
+        // Rebuild the proxy URL with normalized image URL
+        urlObj.searchParams.set('url', encodeURIComponent(normalizedImageUrl));
+        return urlObj.toString();
+      }
+      return url;
+    } catch (error) {
+      console.error('Error normalizing URL:', error);
+      return url;
+    }
+  }
+
   // Initialize IndexedDB
   async initDB() {
     return new Promise((resolve, reject) => {
@@ -48,29 +69,35 @@ class ImageCacheService {
       await this.initPromise;
       if (!this.db) return null;
 
+      const normalizedUrl = this.normalizeUrl(imageUrl);
+      console.log('🔍 Image cache: Checking for normalized URL:', normalizedUrl);
+      if (normalizedUrl !== imageUrl) {
+        console.log('🔍 Original URL was:', imageUrl);
+      }
+
       return new Promise((resolve, reject) => {
         const transaction = this.db.transaction([this.storeName], 'readonly');
         const store = transaction.objectStore(this.storeName);
-        const request = store.get(imageUrl);
+        const request = store.get(normalizedUrl);
 
         request.onsuccess = () => {
           const result = request.result;
           if (!result) {
-            console.log(`🖼️ Image cache MISS for: ${imageUrl}`);
+            console.log(`🖼️ Image cache MISS for: ${normalizedUrl}`);
             resolve(null);
             return;
           }
 
           // Check if cache is expired
           if (Date.now() - result.timestamp > this.CACHE_DURATION) {
-            console.log(`🖼️ Image cache EXPIRED for: ${imageUrl}`);
+            console.log(`🖼️ Image cache EXPIRED for: ${normalizedUrl}`);
             // Delete expired item
-            this.delete(imageUrl);
+            this.delete(normalizedUrl);
             resolve(null);
             return;
           }
 
-          console.log(`🖼️ Image cache HIT for: ${imageUrl}`);
+          console.log(`🖼️ Image cache HIT for: ${normalizedUrl}`);
           // Return blob URL
           const blobUrl = this.createBlobUrl(result.blob);
           resolve(blobUrl);
@@ -93,12 +120,18 @@ class ImageCacheService {
       await this.initPromise;
       if (!this.db) return false;
 
+      const normalizedUrl = this.normalizeUrl(imageUrl);
+      console.log('🔍 Image cache: Storing with normalized URL:', normalizedUrl);
+      if (normalizedUrl !== imageUrl) {
+        console.log('🔍 Original URL was:', imageUrl);
+      }
+
       return new Promise((resolve) => {
         const transaction = this.db.transaction([this.storeName], 'readwrite');
         const store = transaction.objectStore(this.storeName);
         
         const data = {
-          url: imageUrl,
+          url: normalizedUrl,  // Use normalized URL as key
           blob: blob,
           timestamp: Date.now(),
           size: blob.size
@@ -107,7 +140,7 @@ class ImageCacheService {
         const request = store.put(data);
 
         request.onsuccess = () => {
-          console.log(`🖼️ Successfully cached image ${imageUrl.slice(0, 50)}... (${(blob.size / 1024).toFixed(1)} KB)`);
+          console.log(`🖼️ Successfully cached image ${normalizedUrl.slice(0, 50)}... (${(blob.size / 1024).toFixed(1)} KB)`);
           resolve(true);
         };
 
@@ -145,10 +178,12 @@ class ImageCacheService {
       await this.initPromise;
       if (!this.db) return;
 
+      const normalizedUrl = this.normalizeUrl(imageUrl);
+
       return new Promise((resolve) => {
         const transaction = this.db.transaction([this.storeName], 'readwrite');
         const store = transaction.objectStore(this.storeName);
-        const request = store.delete(imageUrl);
+        const request = store.delete(normalizedUrl);
 
         request.onsuccess = () => resolve(true);
         request.onerror = () => resolve(false);
