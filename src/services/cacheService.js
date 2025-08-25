@@ -51,10 +51,49 @@ class CacheService {
 
   // Get cache stats (for debugging)
   getStats() {
+    let totalSizeBytes = 0;
+    const items = [];
+    
+    for (const [key, cached] of this.cache.entries()) {
+      // Estimate size: each page URL is roughly 100-200 bytes
+      // Plus some overhead for the data structure
+      const itemSize = this.estimateSize(cached.data);
+      totalSizeBytes += itemSize;
+      
+      items.push({
+        key,
+        pages: cached.data.pages?.length || 0,
+        sizeBytes: itemSize,
+        timestamp: cached.timestamp,
+        timeRemaining: Math.max(0, this.CACHE_DURATION - (Date.now() - cached.timestamp))
+      });
+    }
+    
     return {
-      size: this.cache.size,
+      count: this.cache.size,
+      totalSizeBytes,
+      totalSizeMB: (totalSizeBytes / (1024 * 1024)).toFixed(2),
+      items,
       keys: Array.from(this.cache.keys())
     };
+  }
+
+  // Estimate memory usage of cached data
+  estimateSize(data) {
+    if (!data || !data.pages) return 0;
+    
+    // Rough estimate: each page object with URL and metadata
+    // URL: ~150 bytes average, plus object overhead ~50 bytes
+    const avgPageSize = 200;
+    return data.pages.length * avgPageSize + 1000; // +1000 for object overhead
+  }
+
+  // Clear all cache
+  clear() {
+    const stats = this.getStats();
+    this.cache.clear();
+    console.log(`🗑️ Cache cleared - freed ${stats.totalSizeMB} MB`);
+    return stats;
   }
 }
 

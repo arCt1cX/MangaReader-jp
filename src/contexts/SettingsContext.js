@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import chapterCache from '../services/cacheService';
 
 const SettingsContext = createContext();
 
@@ -210,6 +211,15 @@ export function SettingsProvider({ children }) {
     });
   };
 
+  // Cache management functions
+  const getCacheStats = () => {
+    return chapterCache.getStats();
+  };
+
+  const clearCache = () => {
+    return chapterCache.clear();
+  };
+
   const value = {
     settings,
     updateReadingMode,
@@ -220,7 +230,9 @@ export function SettingsProvider({ children }) {
     updateZoomSettings,
     updateCustomSites,
     updateTheme,
-    resetSettings
+    resetSettings,
+    getCacheStats,
+    clearCache
   };
 
   return (

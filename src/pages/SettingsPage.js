@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 
 const SettingsPage = () => {
@@ -10,8 +10,24 @@ const SettingsPage = () => {
     updatePageSpacing,
     updateZoomSettings,
     updateTheme,
-    resetSettings 
+    resetSettings,
+    getCacheStats,
+    clearCache
   } = useSettings();
+
+  const [cacheStats, setCacheStats] = useState({ count: 0, totalSizeMB: '0.00' });
+
+  // Update cache stats on component mount and periodically
+  useEffect(() => {
+    const updateStats = () => {
+      setCacheStats(getCacheStats());
+    };
+
+    updateStats(); // Initial load
+    const interval = setInterval(updateStats, 2000); // Update every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [getCacheStats]);
 
   const handleJapaneseHelperChange = (key, value) => {
     updateJapaneseHelper({ [key]: value });
@@ -24,6 +40,14 @@ const SettingsPage = () => {
   const handleResetSettings = () => {
     if (window.confirm('Are you sure you want to reset all settings to default? This cannot be undone.')) {
       resetSettings();
+    }
+  };
+
+  const handleClearCache = () => {
+    if (window.confirm(`Clear ${cacheStats.count} cached chapters (${cacheStats.totalSizeMB} MB)? This will free up memory but chapters will need to be reloaded.`)) {
+      const clearedStats = clearCache();
+      setCacheStats({ count: 0, totalSizeMB: '0.00' });
+      alert(`Cache cleared! Freed ${clearedStats.totalSizeMB} MB of memory.`);
     }
   };
 
@@ -293,6 +317,66 @@ const SettingsPage = () => {
                 </div>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Cache Management */}
+        <section className="bg-manga-gray rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-manga-text mb-4">
+            💾 Cache Management
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-manga-light rounded-lg p-4">
+                <div className="text-2xl font-bold text-manga-accent">
+                  {cacheStats.count}
+                </div>
+                <div className="text-sm text-manga-text/70">
+                  Cached Chapters
+                </div>
+              </div>
+              
+              <div className="bg-manga-light rounded-lg p-4">
+                <div className="text-2xl font-bold text-manga-accent">
+                  {cacheStats.totalSizeMB} MB
+                </div>
+                <div className="text-sm text-manga-text/70">
+                  Memory Used
+                </div>
+              </div>
+            </div>
+
+            <div className="text-sm text-manga-text/70">
+              <p className="mb-2">
+                📦 <strong>Cache Duration:</strong> 30 minutes per chapter
+              </p>
+              <p className="mb-2">
+                🚀 <strong>Benefits:</strong> Faster loading, reduced bandwidth usage
+              </p>
+              <p>
+                🔄 <strong>Auto-cleanup:</strong> Expired chapters are automatically removed
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-manga-light">
+              <button
+                onClick={handleClearCache}
+                disabled={cacheStats.count === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  cacheStats.count === 0
+                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                    : 'bg-orange-600 hover:bg-orange-700 text-white'
+                }`}
+              >
+                🗑️ Clear Cache ({cacheStats.count} chapters)
+              </button>
+              {cacheStats.count === 0 && (
+                <p className="text-xs text-manga-text/50 mt-2">
+                  No cached chapters to clear
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
