@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import apiService from '../services/apiService';
-import imageCacheService from '../services/imageCacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
-import CachedImage from '../components/CachedImage';
 
 const ReaderPage = () => {
   const { site, id, chapter } = useParams();
@@ -94,12 +92,6 @@ const ReaderPage = () => {
       
       if (response.success) {
         setPages(response.data.pages);
-        
-        // Preload images in the background for better performance
-        const chapterId = chapterData?.id || chapterData?.number || chapter;
-        setTimeout(() => {
-          imageCacheService.preloadChapterImages(response.data.pages, chapterId);
-        }, 1000); // Small delay to let the UI load first
       } else {
         setError(response.error || 'Failed to load chapter pages');
       }
@@ -109,7 +101,7 @@ const ReaderPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [site, chapter, chapterUrl, chapterData?.id, chapterData?.number]);
+  }, [site, chapter, chapterUrl]);
 
   useEffect(() => {
     loadChapterPages();
@@ -302,19 +294,16 @@ const ReaderPage = () => {
           <div className="max-w-4xl mx-auto space-y-4">
             {pages.map((page, index) => (
               <div key={index} className="flex justify-center">
-                <CachedImage
+                <img
                   src={page.url}
                   alt={`Page ${index + 1}`}
-                  chapterId={chapterData?.id || chapterData?.number || chapter}
-                  pageNumber={index + 1}
                   className="manga-page cursor-pointer select-none max-w-full h-auto"
-                  style={getImageStyles()}
                   onClick={() => setShowUI(!showUI)}
-                  placeholder={
-                    <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-full">
-                      <div className="text-gray-400">Loading page {index + 1}...</div>
-                    </div>
-                  }
+                  crossOrigin="anonymous"
+                  style={getImageStyles()}
+                  onError={(e) => {
+                    e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${index + 1}%20Error`;
+                  }}
                 />
               </div>
             ))}
@@ -323,54 +312,45 @@ const ReaderPage = () => {
           // Double Page Mode
           <div className="max-w-6xl mx-auto flex gap-4 justify-center">
             {currentPage < pages.length && (
-              <CachedImage
+              <img
                 src={pages[currentPage].url}
                 alt={`Page ${currentPage + 1}`}
-                chapterId={chapterData?.id || chapterData?.number || chapter}
-                pageNumber={currentPage + 1}
                 className="manga-page cursor-pointer select-none"
-                style={getImageStyles(true)}
                 onClick={handleImageClick}
-                placeholder={
-                  <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-96">
-                    <div className="text-gray-400">Loading page {currentPage + 1}...</div>
-                  </div>
-                }
+                crossOrigin="anonymous"
+                style={getImageStyles(true)}
+                onError={(e) => {
+                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
+                }}
               />
             )}
             {currentPage + 1 < pages.length && (
-              <CachedImage
+              <img
                 src={pages[currentPage + 1].url}
                 alt={`Page ${currentPage + 2}`}
-                chapterId={chapterData?.id || chapterData?.number || chapter}
-                pageNumber={currentPage + 2}
                 className="manga-page cursor-pointer select-none"
-                style={getImageStyles(true)}
                 onClick={handleImageClick}
-                placeholder={
-                  <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-96">
-                    <div className="text-gray-400">Loading page {currentPage + 2}...</div>
-                  </div>
-                }
+                crossOrigin="anonymous"
+                style={getImageStyles(true)}
+                onError={(e) => {
+                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 2}%20Error`;
+                }}
               />
             )}
           </div>
         ) : (
           // Single Page Mode
           <div className="max-w-4xl mx-auto">
-            <CachedImage
+            <img
               src={currentPageData.url}
               alt={`Page ${currentPage + 1}`}
-              chapterId={chapterData?.id || chapterData?.number || chapter}
-              pageNumber={currentPage + 1}
               className="manga-page cursor-pointer select-none"
-              style={getImageStyles()}
               onClick={handleImageClick}
-              placeholder={
-                <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-full">
-                  <div className="text-gray-400">Loading page {currentPage + 1}...</div>
-                </div>
-              }
+              crossOrigin="anonymous"
+              style={getImageStyles()}
+              onError={(e) => {
+                e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
+              }}
             />
           </div>
         )}
