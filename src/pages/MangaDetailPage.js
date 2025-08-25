@@ -68,10 +68,6 @@ const MangaDetailPage = () => {
       // If we know where they came from, go there directly
       navigate(referrerPath);
     } else {
-      // Check current browser history to make intelligent decision
-      const currentPath = location.pathname;
-      const searchParams = new URLSearchParams(location.search);
-      
       // If we can detect common patterns, navigate appropriately
       if (document.referrer.includes('/search') || document.referrer.includes('?query=')) {
         navigate('/search');
