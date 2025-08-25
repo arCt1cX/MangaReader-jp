@@ -4,6 +4,7 @@ import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Icon from '../components/Icon';
 
 const MangaDetailPage = () => {
   const { site, id } = useParams();
@@ -160,10 +161,10 @@ const MangaDetailPage = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <button
             onClick={handleBackNavigation}
-            className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg text-xl font-medium"
+            className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg"
             aria-label="Go back"
           >
-            ←
+            <Icon name="arrowLeft" size={20} />
           </button>
         </div>
       </header>
@@ -211,7 +212,7 @@ const MangaDetailPage = () => {
                 
                 {manga.rating && (
                   <div className="flex items-center gap-1">
-                    <span className="text-yellow-400">★</span>
+                    <Icon name="starFilled" size={16} color="#fbbf24" />
                     <span className="text-manga-text">{manga.rating.toFixed(1)}</span>
                   </div>
                 )}
@@ -233,21 +234,23 @@ const MangaDetailPage = () => {
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
                   onClick={handleLibraryToggle}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 justify-center ${
                     isInLibrary
                       ? 'bg-red-600 hover:bg-red-700 text-white'
                       : 'bg-manga-accent hover:opacity-90 text-white'
                   }`}
                 >
-                  {isInLibrary ? '❤️ Remove from Library' : '💝 Add to Library'}
+                  <Icon name={isInLibrary ? "heartFilled" : "heart"} size={16} />
+                  {isInLibrary ? 'Remove from Library' : 'Add to Library'}
                 </button>
                 {/* Start from Chapter 1 Button */}
                 {manga.chapters && manga.chapters.length > 0 && (
                   <button
-                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200"
+                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200 flex items-center gap-2 justify-center"
                     onClick={() => handleChapterClick(manga.chapters[manga.chapters.length - 1])}
                   >
-                    ▶️ Start from Chapter 1
+                    <Icon name="play" size={16} />
+                    Start from Chapter 1
                   </button>
                 )}
               </div>

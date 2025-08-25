@@ -2,6 +2,7 @@ import React from 'react';
 import { useLibrary } from '../contexts/LibraryContext';
 import { useNavigate } from 'react-router-dom';
 import MangaCard from '../components/MangaCard';
+import Icon from '../components/Icon';
 
 const LibraryPage = () => {
   const { getLibraryArray, clearLibrary } = useLibrary();
@@ -62,7 +63,9 @@ const LibraryPage = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">📚</div>
+            <div className="flex justify-center mb-4">
+              <Icon name="library" size={64} className="text-manga-text/30" />
+            </div>
             <h3 className="text-xl font-semibold text-manga-text mb-2">
               Your library is empty
             </h3>
@@ -71,8 +74,9 @@ const LibraryPage = () => {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="bg-manga-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              className="bg-manga-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 mx-auto"
             >
+              <Icon name="search" size={16} />
               Browse Manga
             </button>
           </div>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MangaCard from '../components/MangaCard';
+import Icon from '../components/Icon';
 
 const SearchPage = () => {
   const { site } = useParams();
@@ -90,10 +91,10 @@ const SearchPage = () => {
           <div className="flex items-center mb-4">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg mr-4 text-xl font-medium"
+              className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg mr-4"
               aria-label="Go back"
             >
-              ←
+              <Icon name="arrowLeft" size={20} />
             </button>
             <h1 className="text-2xl font-bold text-manga-text flex-1">
               Search {getSiteName()}
@@ -112,9 +113,10 @@ const SearchPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-manga-accent hover:opacity-90 disabled:bg-manga-light disabled:opacity-50 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200"
+              className="bg-manga-accent hover:opacity-90 disabled:bg-manga-light disabled:opacity-50 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
             >
-              {loading ? '🔄' : '🔍'}
+              {loading ? <Icon name="loading" size={16} /> : <Icon name="search" size={16} />}
+              <span className="hidden sm:inline">Search</span>
             </button>
           </form>
         </div>
@@ -124,10 +126,13 @@ const SearchPage = () => {
         {/* Error Message */}
         {error && (
           <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6">
-            <p className="text-red-300">❌ {error}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="error" size={20} color="#fca5a5" />
+              <p className="text-red-300">{error}</p>
+            </div>
             <button
               onClick={() => performSearch(query || 'popular', 1, true)}
-              className="text-red-400 hover:text-red-300 text-sm mt-2 underline"
+              className="text-red-400 hover:text-red-300 text-sm underline"
             >
               Try again
             </button>
@@ -175,7 +180,9 @@ const SearchPage = () => {
           </>
         ) : !loading && !error ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
+            <div className="flex justify-center mb-4">
+              <Icon name="bookOpen" size={64} className="text-manga-text/30" />
+            </div>
             <h3 className="text-xl font-semibold text-manga-text mb-2">
               {query ? 'No results found' : 'Start searching'}
             </h3>

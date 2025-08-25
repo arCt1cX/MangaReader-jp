@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Icon from './Icon';
 
 const Navigation = () => {
   const location = useLocation();
@@ -13,19 +14,19 @@ const Navigation = () => {
   const navItems = [
     {
       path: '/',
-      icon: '🏠',
+      icon: 'home',
       label: 'Home',
       active: location.pathname === '/'
     },
     {
       path: '/library',
-      icon: '📚',
+      icon: 'library',
       label: 'Library',
       active: location.pathname === '/library'
     },
     {
       path: '/settings',
-      icon: '⚙️',
+      icon: 'settings',
       label: 'Settings',
       active: location.pathname === '/settings'
     }
@@ -45,7 +46,13 @@ const Navigation = () => {
                   : 'text-manga-text/70 hover:text-manga-text hover:bg-manga-light/50'
               }`}
             >
-              <span className="text-xl mb-1">{item.icon}</span>
+              <div className="mb-1">
+                <Icon 
+                  name={item.icon} 
+                  size={20} 
+                  color={item.active ? 'var(--accent)' : 'currentColor'} 
+                />
+              </div>
               <span className="text-xs font-medium">{item.label}</span>
             </button>
           ))}
