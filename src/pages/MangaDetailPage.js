@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
+import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const MangaDetailPage = () => {
@@ -27,6 +28,21 @@ const MangaDetailPage = () => {
       setLoading(true);
       setError(null);
       
+      // Check cache first
+      const cachedManga = chapterCache.getMangaDetails(site, id);
+      if (cachedManga) {
+        console.log('📦 Using cached manga details');
+        // Use cover image from search results if available and not in cache
+        if (mangaFromState?.coverImage && !cachedManga.coverImage) {
+          cachedManga.coverImage = mangaFromState.coverImage;
+        }
+        setManga(cachedManga);
+        setLoading(false);
+        return;
+      }
+      
+      // Not in cache, fetch from API
+      console.log('🌐 Fetching manga details from API');
       const response = await apiService.getMangaInfo(site, id);
       
       if (response.success) {
@@ -37,6 +53,9 @@ const MangaDetailPage = () => {
           mangaData.coverImage = mangaFromState.coverImage;
           console.log('Using cover image from search results:', mangaData.coverImage);
         }
+        
+        // Cache the manga details for future use
+        chapterCache.setMangaDetails(site, id, mangaData);
         
         setManga(mangaData);
       } else {

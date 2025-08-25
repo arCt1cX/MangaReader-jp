@@ -149,6 +149,44 @@ class CacheService {
     console.log(`🗑️ Cache cleared - freed ${stats.totalSizeMB} MB`);
     return stats;
   }
+
+  // Manga details caching methods
+  getMangaDetailsCacheKey(site, mangaId) {
+    return `manga_details_${site}_${mangaId}`;
+  }
+
+  // Get manga details from cache
+  getMangaDetails(site, mangaId) {
+    const key = this.getMangaDetailsCacheKey(site, mangaId);
+    const item = this.cache.get(key);
+    
+    if (item && Date.now() - item.timestamp < this.CACHE_DURATION) {
+      console.log(`📦 Using cached manga details for ${mangaId}`);
+      return item.data;
+    }
+    
+    // Clean up expired item
+    if (item) {
+      this.cache.delete(key);
+      this.saveCache();
+    }
+    
+    return null;
+  }
+
+  // Set manga details in cache
+  setMangaDetails(site, mangaId, mangaData) {
+    const key = this.getMangaDetailsCacheKey(site, mangaId);
+    const item = {
+      data: mangaData,
+      timestamp: Date.now(),
+      type: 'manga_details'
+    };
+    
+    this.cache.set(key, item);
+    this.saveCache();
+    console.log(`💾 Cached manga details for ${mangaId}`);
+  }
 }
 
 // Export singleton instance
