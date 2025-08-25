@@ -1,157 +1,262 @@
-// Simple image cache service for manga cover images
+// Simple image cache service using IndexedDB for persistent storage
 class ImageCacheService {
   constructor() {
+    this.dbName = 'MangaImageCache';
+    this.dbVersion = 1;
+    this.storeName = 'images';
     this.CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-    this.STORAGE_KEY = 'manga_image_cache';
-    this.initializeCache();
+    this.db = null;
+    this.initPromise = this.initDB();
   }
 
-  // Initialize cache from localStorage
-  initializeCache() {
+  // Initialize IndexedDB
+  async initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion);
+
+      request.onerror = () => {
+        console.error('Failed to open IndexedDB:', request.error);
+        reject(request.error);
+      };
+
+      request.onsuccess = () => {
+        this.db = request.result;
+        console.log('📦 Image cache DB initialized');
+        this.cleanupExpired(); // Clean up on startup
+        resolve(this.db);
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: 'url' });
+          store.createIndex('timestamp', 'timestamp', { unique: false });
+          console.log('📦 Image cache store created');
+        }
+      };
+    });
+  }
+
+  // Generate a blob URL from cached data
+  createBlobUrl(blob) {
+    return URL.createObjectURL(blob);
+  }
+
+  // Get cached image
+  async get(imageUrl) {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      this.cache = stored ? new Map(JSON.parse(stored)) : new Map();
-      
-      // Clean up expired items on startup
-      this.clearExpired();
-      
-      console.log(`🖼️ Image cache initialized with ${this.cache.size} items`);
+      await this.initPromise;
+      if (!this.db) return null;
+
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([this.storeName], 'readonly');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.get(imageUrl);
+
+        request.onsuccess = () => {
+          const result = request.result;
+          if (!result) {
+            resolve(null);
+            return;
+          }
+
+          // Check if cache is expired
+          if (Date.now() - result.timestamp > this.CACHE_DURATION) {
+            // Delete expired item
+            this.delete(imageUrl);
+            resolve(null);
+            return;
+          }
+
+          console.log(`🖼️ Image cache HIT for ${imageUrl.slice(0, 50)}...`);
+          // Return blob URL
+          const blobUrl = this.createBlobUrl(result.blob);
+          resolve(blobUrl);
+        };
+
+        request.onerror = () => {
+          console.warn('Failed to get cached image:', request.error);
+          resolve(null);
+        };
+      });
     } catch (error) {
-      console.warn('Failed to load image cache from localStorage:', error);
-      this.cache = new Map();
-    }
-  }
-
-  // Save cache to localStorage
-  saveCache() {
-    try {
-      const cacheArray = Array.from(this.cache.entries());
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cacheArray));
-    } catch (error) {
-      console.warn('Failed to save image cache to localStorage:', error);
-      // If storage is full, try clearing expired items and retry
-      this.clearExpired();
-      try {
-        const cacheArray = Array.from(this.cache.entries());
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cacheArray));
-      } catch (retryError) {
-        console.error('Failed to save image cache even after cleanup:', retryError);
-      }
-    }
-  }
-
-  // Generate cache key for an image URL
-  getCacheKey(imageUrl) {
-    // Use the original image URL as the key (before proxy conversion)
-    return imageUrl.replace(/^.*\/api\/manga\/image-proxy\?url=/, '').replace(/%/g, '');
-  }
-
-  // Check if image is in cache and not expired
-  get(imageUrl) {
-    const key = this.getCacheKey(imageUrl);
-    const cached = this.cache.get(key);
-    
-    if (!cached) {
+      console.warn('Image cache get error:', error);
       return null;
     }
+  }
 
-    // Check if cache is expired
-    if (Date.now() - cached.timestamp > this.CACHE_DURATION) {
-      this.cache.delete(key);
-      this.saveCache();
+  // Cache an image
+  async set(imageUrl, blob) {
+    try {
+      await this.initPromise;
+      if (!this.db) return false;
+
+      return new Promise((resolve) => {
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        
+        const data = {
+          url: imageUrl,
+          blob: blob,
+          timestamp: Date.now(),
+          size: blob.size
+        };
+
+        const request = store.put(data);
+
+        request.onsuccess = () => {
+          console.log(`🖼️ Cached image ${imageUrl.slice(0, 50)}... (${(blob.size / 1024).toFixed(1)} KB)`);
+          resolve(true);
+        };
+
+        request.onerror = () => {
+          console.warn('Failed to cache image:', request.error);
+          resolve(false);
+        };
+      });
+    } catch (error) {
+      console.warn('Image cache set error:', error);
+      return false;
+    }
+  }
+
+  // Download and cache an image
+  async cacheImage(imageUrl) {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      await this.set(imageUrl, blob);
+      return this.createBlobUrl(blob);
+    } catch (error) {
+      console.warn('Failed to download and cache image:', error);
       return null;
     }
-
-    console.log(`🖼️ Image cache HIT for ${key.substring(0, 50)}...`);
-    return cached.dataUrl;
   }
 
-  // Store image in cache as base64 data URL
-  async set(imageUrl, imgElement) {
+  // Delete a cached image
+  async delete(imageUrl) {
     try {
-      const key = this.getCacheKey(imageUrl);
-      
-      // Convert image to base64 data URL
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      canvas.width = imgElement.naturalWidth;
-      canvas.height = imgElement.naturalHeight;
-      
-      ctx.drawImage(imgElement, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress to 80% quality
-      
-      this.cache.set(key, {
-        dataUrl: dataUrl,
-        timestamp: Date.now()
+      await this.initPromise;
+      if (!this.db) return;
+
+      return new Promise((resolve) => {
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.delete(imageUrl);
+
+        request.onsuccess = () => resolve(true);
+        request.onerror = () => resolve(false);
       });
-      
-      console.log(`🖼️ Cached image ${key.substring(0, 50)}... (${Math.round(dataUrl.length / 1024)}KB)`);
-      this.saveCache();
-      
     } catch (error) {
-      console.warn('Failed to cache image:', error);
+      console.warn('Image cache delete error:', error);
+      return false;
     }
   }
 
-  // Clear expired items
-  clearExpired() {
-    const now = Date.now();
-    let removedCount = 0;
-    
-    for (const [key, cached] of this.cache.entries()) {
-      if (now - cached.timestamp > this.CACHE_DURATION) {
-        this.cache.delete(key);
-        removedCount++;
-      }
-    }
-    
-    if (removedCount > 0) {
-      console.log(`🗑️ Removed ${removedCount} expired image cache entries`);
-      this.saveCache();
-    }
-  }
-
-  // Get cache stats
-  getStats() {
-    let totalSizeBytes = 0;
-    const items = [];
-    
-    for (const [key, cached] of this.cache.entries()) {
-      const itemSize = cached.dataUrl ? cached.dataUrl.length : 0;
-      totalSizeBytes += itemSize;
-      
-      items.push({
-        key: key.substring(0, 50) + '...',
-        sizeBytes: itemSize,
-        sizeMB: (itemSize / (1024 * 1024)).toFixed(2),
-        timestamp: cached.timestamp,
-        timeRemaining: Math.max(0, this.CACHE_DURATION - (Date.now() - cached.timestamp)),
-        daysRemaining: Math.max(0, (this.CACHE_DURATION - (Date.now() - cached.timestamp)) / (24 * 60 * 60 * 1000)).toFixed(1)
-      });
-    }
-    
-    return {
-      count: this.cache.size,
-      totalSizeBytes,
-      totalSizeMB: (totalSizeBytes / (1024 * 1024)).toFixed(2),
-      items
-    };
-  }
-
-  // Clear all cache
-  clear() {
-    const stats = this.getStats();
-    this.cache.clear();
-    
+  // Clean up expired images
+  async cleanupExpired() {
     try {
-      localStorage.removeItem(this.STORAGE_KEY);
+      await this.initPromise;
+      if (!this.db) return;
+
+      const now = Date.now();
+      const cutoff = now - this.CACHE_DURATION;
+
+      return new Promise((resolve) => {
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        const index = store.index('timestamp');
+        const request = index.openCursor(IDBKeyRange.upperBound(cutoff));
+
+        let deletedCount = 0;
+
+        request.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            cursor.delete();
+            deletedCount++;
+            cursor.continue();
+          } else {
+            if (deletedCount > 0) {
+              console.log(`🗑️ Cleaned up ${deletedCount} expired cached images`);
+            }
+            resolve(deletedCount);
+          }
+        };
+
+        request.onerror = () => {
+          console.warn('Failed to cleanup expired images');
+          resolve(0);
+        };
+      });
     } catch (error) {
-      console.warn('Failed to clear image cache from localStorage:', error);
+      console.warn('Image cache cleanup error:', error);
+      return 0;
     }
-    
-    console.log(`🗑️ Image cache cleared - freed ${stats.totalSizeMB} MB`);
-    return stats;
+  }
+
+  // Get cache statistics
+  async getStats() {
+    try {
+      await this.initPromise;
+      if (!this.db) return { count: 0, totalSize: 0 };
+
+      return new Promise((resolve) => {
+        const transaction = this.db.transaction([this.storeName], 'readonly');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+          const items = request.result;
+          const totalSize = items.reduce((sum, item) => sum + (item.size || 0), 0);
+          
+          resolve({
+            count: items.length,
+            totalSize,
+            totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2)
+          });
+        };
+
+        request.onerror = () => {
+          resolve({ count: 0, totalSize: 0, totalSizeMB: '0.00' });
+        };
+      });
+    } catch (error) {
+      return { count: 0, totalSize: 0, totalSizeMB: '0.00' };
+    }
+  }
+
+  // Clear all cached images
+  async clear() {
+    try {
+      await this.initPromise;
+      if (!this.db) return;
+
+      const stats = await this.getStats();
+      
+      return new Promise((resolve) => {
+        const transaction = this.db.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.clear();
+
+        request.onsuccess = () => {
+          console.log(`🗑️ Image cache cleared - freed ${stats.totalSizeMB} MB`);
+          resolve(stats);
+        };
+
+        request.onerror = () => {
+          console.warn('Failed to clear image cache');
+          resolve(stats);
+        };
+      });
+    } catch (error) {
+      console.warn('Image cache clear error:', error);
+      return { count: 0, totalSize: 0 };
+    }
   }
 }
 

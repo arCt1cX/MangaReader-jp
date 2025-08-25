@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import chapterCache from '../services/cacheService';
-import imageCache from '../services/imageCacheService';
 
 const SettingsContext = createContext();
 
@@ -214,39 +213,11 @@ export function SettingsProvider({ children }) {
 
   // Cache management functions
   const getCacheStats = () => {
-    const chapterStats = chapterCache.getStats();
-    const imageStats = imageCache.getStats();
-    
-    return {
-      chapters: chapterStats,
-      images: imageStats,
-      total: {
-        count: chapterStats.count + imageStats.count,
-        totalSizeMB: (parseFloat(chapterStats.totalSizeMB) + parseFloat(imageStats.totalSizeMB)).toFixed(2)
-      }
-    };
+    return chapterCache.getStats();
   };
 
   const clearCache = () => {
-    const chapterStats = chapterCache.clear();
-    const imageStats = imageCache.clear();
-    
-    return {
-      chapters: chapterStats,
-      images: imageStats,
-      total: {
-        count: chapterStats.count + imageStats.count,
-        totalSizeMB: (parseFloat(chapterStats.totalSizeMB) + parseFloat(imageStats.totalSizeMB)).toFixed(2)
-      }
-    };
-  };
-
-  const clearChapterCache = () => {
     return chapterCache.clear();
-  };
-
-  const clearImageCache = () => {
-    return imageCache.clear();
   };
 
   const value = {
@@ -261,9 +232,7 @@ export function SettingsProvider({ children }) {
     updateTheme,
     resetSettings,
     getCacheStats,
-    clearCache,
-    clearChapterCache,
-    clearImageCache
+    clearCache
   };
 
   return (

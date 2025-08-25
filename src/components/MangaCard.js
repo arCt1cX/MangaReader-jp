@@ -5,13 +5,19 @@ import CachedImage from './CachedImage';
 const MangaCard = ({ manga, onClick, showProgress = false }) => {
   const { isMangaInLibrary, getMangaProgress } = useLibrary();
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   
   const isInLibrary = isMangaInLibrary(manga.id);
   const progress = getMangaProgress(manga.id);
 
-  const handleImageError = () => {
-    console.log('Image failed to load:', manga.coverImage);
+  const handleImageError = (e) => {
+    console.log('Image failed to load:', manga.coverImage, e);
     setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
   };
 
   return (
@@ -21,13 +27,30 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
     >
       {/* Cover Image */}
       <div className="aspect-[3/4] bg-manga-light relative overflow-hidden">
-        {manga.coverImage && !imageError ? (
-          <CachedImage
-            src={manga.coverImage}
-            alt={manga.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={handleImageError}
-          />
+        {manga.coverImage ? (
+          <>
+            {imageLoading && (
+              <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50 animate-pulse">
+                📚
+              </div>
+            )}
+            <CachedImage
+              src={manga.coverImage}
+              alt={manga.title}
+              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                imageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              loading="lazy"
+              onError={handleImageError}
+              onLoad={handleImageLoad}
+              crossOrigin="anonymous"
+              fallback={
+                <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
+                  📚
+                </div>
+              }
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
             📚

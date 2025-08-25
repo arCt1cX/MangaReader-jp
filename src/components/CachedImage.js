@@ -1,43 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import imageCache from '../services/imageCacheService';
 
-const CachedImage = ({ src, alt, className, onError, ...props }) => {
+const CachedImage = ({ 
+  src, 
+  alt, 
+  className = '', 
+  onLoad, 
+  onError,
+  fallback = null,
+  ...props 
+}) => {
   const [imageSrc, setImageSrc] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const imgRef = useRef(null);
-
-  const loadAndCacheImage = useCallback(async (imageUrl) => {
-    try {
-      setLoading(true);
-      setError(false);
-
-      // Create a new image element to load the image
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = async () => {
-        // Image loaded successfully, cache it
-        await imageCache.set(imageUrl, img);
-        setImageSrc(imageUrl);
-        setLoading(false);
-      };
-
-      img.onerror = () => {
-        console.warn('Failed to load image:', imageUrl);
-        setError(true);
-        setLoading(false);
-        if (onError) onError();
-      };
-
-      img.src = imageUrl;
-    } catch (err) {
-      console.error('Error loading image:', err);
-      setError(true);
-      setLoading(false);
-      if (onError) onError();
-    }
-  }, [onError]);
 
   useEffect(() => {
     if (!src) {
@@ -46,43 +21,86 @@ const CachedImage = ({ src, alt, className, onError, ...props }) => {
       return;
     }
 
-    // Check cache first
-    const cachedImage = imageCache.get(src);
-    if (cachedImage) {
-      setImageSrc(cachedImage);
-      setLoading(false);
-      return;
-    }
+    let isMounted = true;
 
-    // Load image and cache it
-    loadAndCacheImage(src);
-  }, [src, loadAndCacheImage]);
+    const loadImage = async () => {
+      try {
+        setLoading(true);
+        setError(false);
 
-  if (loading) {
-    return (
-      <div className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}>
-        <div className="text-gray-400 text-sm">Loading...</div>
-      </div>
-    );
+        // Try to get from cache first
+        const cachedUrl = await imageCache.get(src);
+        
+        if (cachedUrl && isMounted) {
+          setImageSrc(cachedUrl);
+          setLoading(false);
+          return;
+        }
+
+        // If not cached, download and cache it
+        const newCachedUrl = await imageCache.cacheImage(src);
+        
+        if (newCachedUrl && isMounted) {
+          setImageSrc(newCachedUrl);
+        } else if (isMounted) {
+          // Fallback to original URL if caching fails
+          setImageSrc(src);
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
+      } catch (err) {
+        console.warn('CachedImage error:', err);
+        if (isMounted) {
+          setImageSrc(src); // Fallback to original URL
+          setLoading(false);
+        }
+      }
+    };
+
+    loadImage();
+
+    return () => {
+      isMounted = false;
+      // Clean up blob URLs to prevent memory leaks
+      if (imageSrc && imageSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [src]);
+
+  const handleLoad = (e) => {
+    setLoading(false);
+    setError(false);
+    if (onLoad) onLoad(e);
+  };
+
+  const handleError = (e) => {
+    setLoading(false);
+    setError(true);
+    if (onError) onError(e);
+  };
+
+  if (error && fallback) {
+    return fallback;
   }
 
   if (error || !imageSrc) {
     return (
-      <div className={`${className} bg-gray-800 flex items-center justify-center`}>
-        <div className="text-gray-400 text-sm text-center">
-          <div className="text-2xl mb-1">📚</div>
-          <div>No Image</div>
-        </div>
+      <div className={`flex items-center justify-center bg-gray-200 ${className}`}>
+        <span className="text-gray-400 text-2xl">📚</span>
       </div>
     );
   }
 
   return (
     <img
-      ref={imgRef}
       src={imageSrc}
       alt={alt}
       className={className}
+      onLoad={handleLoad}
+      onError={handleError}
       {...props}
     />
   );

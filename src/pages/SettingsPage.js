@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
+import imageCache from '../services/imageCacheService';
 
 const SettingsPage = () => {
   const { 
@@ -12,21 +13,18 @@ const SettingsPage = () => {
     updateTheme,
     resetSettings,
     getCacheStats,
-    clearCache,
-    clearChapterCache,
-    clearImageCache
+    clearCache
   } = useSettings();
 
-  const [cacheStats, setCacheStats] = useState({ 
-    chapters: { count: 0, totalSizeMB: '0.00' },
-    images: { count: 0, totalSizeMB: '0.00' },
-    total: { count: 0, totalSizeMB: '0.00' }
-  });
+  const [cacheStats, setCacheStats] = useState({ count: 0, totalSizeMB: '0.00' });
+  const [imageCacheStats, setImageCacheStats] = useState({ count: 0, totalSizeMB: '0.00' });
 
   // Update cache stats on component mount and periodically
   useEffect(() => {
-    const updateStats = () => {
+    const updateStats = async () => {
       setCacheStats(getCacheStats());
+      const imageStats = await imageCache.getStats();
+      setImageCacheStats(imageStats);
     };
 
     updateStats(); // Initial load
@@ -50,44 +48,18 @@ const SettingsPage = () => {
   };
 
   const handleClearCache = () => {
-    if (window.confirm(`Clear all cache (${cacheStats.total.count} items, ${cacheStats.total.totalSizeMB} MB)? This will free up memory but content will need to be reloaded.`)) {
+    if (window.confirm(`Clear ${cacheStats.count} cached chapters (${cacheStats.totalSizeMB} MB)? This will free up memory but chapters will need to be reloaded.`)) {
       const clearedStats = clearCache();
-      setCacheStats({ 
-        chapters: { count: 0, totalSizeMB: '0.00' },
-        images: { count: 0, totalSizeMB: '0.00' },
-        total: { count: 0, totalSizeMB: '0.00' }
-      });
-      alert(`Cache cleared! Freed ${clearedStats.total.totalSizeMB} MB of memory.`);
+      setCacheStats({ count: 0, totalSizeMB: '0.00' });
+      alert(`Cache cleared! Freed ${clearedStats.totalSizeMB} MB of memory.`);
     }
   };
 
-  const handleClearChapterCache = () => {
-    if (window.confirm(`Clear chapter cache (${cacheStats.chapters.count} chapters, ${cacheStats.chapters.totalSizeMB} MB)?`)) {
-      const clearedStats = clearChapterCache();
-      setCacheStats(prev => ({
-        ...prev,
-        chapters: { count: 0, totalSizeMB: '0.00' },
-        total: { 
-          count: prev.images.count,
-          totalSizeMB: prev.images.totalSizeMB
-        }
-      }));
-      alert(`Chapter cache cleared! Freed ${clearedStats.totalSizeMB} MB.`);
-    }
-  };
-
-  const handleClearImageCache = () => {
-    if (window.confirm(`Clear image cache (${cacheStats.images.count} images, ${cacheStats.images.totalSizeMB} MB)?`)) {
-      const clearedStats = clearImageCache();
-      setCacheStats(prev => ({
-        ...prev,
-        images: { count: 0, totalSizeMB: '0.00' },
-        total: { 
-          count: prev.chapters.count,
-          totalSizeMB: prev.chapters.totalSizeMB
-        }
-      }));
-      alert(`Image cache cleared! Freed ${clearedStats.totalSizeMB} MB.`);
+  const handleClearImageCache = async () => {
+    if (window.confirm(`Clear ${imageCacheStats.count} cached images (${imageCacheStats.totalSizeMB} MB)? This will free up storage but images will need to be redownloaded.`)) {
+      const clearedStats = await imageCache.clear();
+      setImageCacheStats({ count: 0, totalSizeMB: '0.00' });
+      alert(`Image cache cleared! Freed ${clearedStats.totalSizeMB} MB of storage.`);
     }
   };
 
@@ -366,104 +338,117 @@ const SettingsPage = () => {
             💾 Cache Management
           </h2>
           
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-manga-accent">
-                  {cacheStats.chapters.count}
+          <div className="space-y-6">
+            {/* Chapter Cache */}
+            <div>
+              <h3 className="text-lg font-medium text-manga-text mb-3">Chapter Cache</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="bg-manga-light rounded-lg p-4">
+                  <div className="text-2xl font-bold text-manga-accent">
+                    {cacheStats.count}
+                  </div>
+                  <div className="text-sm text-manga-text/70">
+                    Cached Chapters
+                  </div>
                 </div>
-                <div className="text-sm text-manga-text/70">
-                  Cached Chapters
-                </div>
-                <div className="text-xs text-manga-text/50">
-                  {cacheStats.chapters.totalSizeMB} MB
-                </div>
-              </div>
-              
-              <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-500">
-                  {cacheStats.images.count}
-                </div>
-                <div className="text-sm text-manga-text/70">
-                  Cached Images
-                </div>
-                <div className="text-xs text-manga-text/50">
-                  {cacheStats.images.totalSizeMB} MB
+                
+                <div className="bg-manga-light rounded-lg p-4">
+                  <div className="text-2xl font-bold text-manga-accent">
+                    {cacheStats.totalSizeMB} MB
+                  </div>
+                  <div className="text-sm text-manga-text/70">
+                    Memory Used
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-500">
-                  {cacheStats.total.totalSizeMB} MB
-                </div>
-                <div className="text-sm text-manga-text/70">
-                  Total Memory
-                </div>
-                <div className="text-xs text-manga-text/50">
-                  {cacheStats.total.count} items
-                </div>
+              <div className="text-sm text-manga-text/70 mb-4">
+                <p className="mb-1">
+                  📦 <strong>Duration:</strong> 30 minutes per chapter
+                </p>
+                <p className="mb-1">
+                  � <strong>Storage:</strong> Browser memory (localStorage)
+                </p>
               </div>
+
+              <button
+                onClick={handleClearCache}
+                disabled={cacheStats.count === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  cacheStats.count === 0
+                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                    : 'bg-orange-600 hover:bg-orange-700 text-white'
+                }`}
+              >
+                🗑️ Clear Chapter Cache ({cacheStats.count} chapters)
+              </button>
+              {cacheStats.count === 0 && (
+                <p className="text-xs text-manga-text/50 mt-2">
+                  No cached chapters to clear
+                </p>
+              )}
             </div>
 
-            <div className="text-sm text-manga-text/70">
-              <p className="mb-2">
-                📦 <strong>Chapter Cache:</strong> 30 minutes per chapter
-              </p>
-              <p className="mb-2">
-                🖼️ <strong>Image Cache:</strong> 7 days for cover images
-              </p>
+            {/* Image Cache */}
+            <div className="border-t border-manga-light pt-6">
+              <h3 className="text-lg font-medium text-manga-text mb-3">Image Cache</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="bg-manga-light rounded-lg p-4">
+                  <div className="text-2xl font-bold text-blue-400">
+                    {imageCacheStats.count}
+                  </div>
+                  <div className="text-sm text-manga-text/70">
+                    Cached Images
+                  </div>
+                </div>
+                
+                <div className="bg-manga-light rounded-lg p-4">
+                  <div className="text-2xl font-bold text-blue-400">
+                    {imageCacheStats.totalSizeMB} MB
+                  </div>
+                  <div className="text-sm text-manga-text/70">
+                    Storage Used
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-manga-text/70 mb-4">
+                <p className="mb-1">
+                  📦 <strong>Duration:</strong> 7 days per image
+                </p>
+                <p className="mb-1">
+                  💾 <strong>Storage:</strong> Browser database (IndexedDB)
+                </p>
+                <p className="mb-1">
+                  🖼️ <strong>Content:</strong> Manga cover images
+                </p>
+              </div>
+
+              <button
+                onClick={handleClearImageCache}
+                disabled={imageCacheStats.count === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  imageCacheStats.count === 0
+                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                🗑️ Clear Image Cache ({imageCacheStats.count} images)
+              </button>
+              {imageCacheStats.count === 0 && (
+                <p className="text-xs text-manga-text/50 mt-2">
+                  No cached images to clear
+                </p>
+              )}
+            </div>
+
+            <div className="text-sm text-manga-text/70 bg-manga-light rounded-lg p-4">
               <p className="mb-2">
                 🚀 <strong>Benefits:</strong> Faster loading, reduced bandwidth usage
               </p>
               <p>
                 🔄 <strong>Auto-cleanup:</strong> Expired content is automatically removed
               </p>
-            </div>
-
-            <div className="pt-4 border-t border-manga-light">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={handleClearCache}
-                  disabled={cacheStats.total.count === 0}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    cacheStats.total.count === 0
-                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700 text-white'
-                  }`}
-                >
-                  🗑️ Clear All Cache
-                </button>
-
-                <button
-                  onClick={handleClearChapterCache}
-                  disabled={cacheStats.chapters.count === 0}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    cacheStats.chapters.count === 0
-                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
-                      : 'bg-orange-600 hover:bg-orange-700 text-white'
-                  }`}
-                >
-                  � Clear Chapters ({cacheStats.chapters.count})
-                </button>
-
-                <button
-                  onClick={handleClearImageCache}
-                  disabled={cacheStats.images.count === 0}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    cacheStats.images.count === 0
-                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  }`}
-                >
-                  🖼️ Clear Images ({cacheStats.images.count})
-                </button>
-              </div>
-              
-              {cacheStats.total.count === 0 && (
-                <p className="text-xs text-manga-text/50 mt-2">
-                  No cached content to clear
-                </p>
-              )}
             </div>
           </div>
         </section>
