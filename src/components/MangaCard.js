@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
 import { useLibrary } from '../contexts/LibraryContext';
+import CachedImage from './CachedImage';
 
 const MangaCard = ({ manga, onClick, showProgress = false }) => {
   const { isMangaInLibrary, getMangaProgress } = useLibrary();
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
   
   const isInLibrary = isMangaInLibrary(manga.id);
   const progress = getMangaProgress(manga.id);
 
-  const handleImageError = (e) => {
-    console.log('Image failed to load:', manga.coverImage, e);
+  const handleImageError = () => {
     setImageError(true);
-    setImageLoading(false);
-  };
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
   };
 
   return (
@@ -27,24 +21,20 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
       {/* Cover Image */}
       <div className="aspect-[3/4] bg-manga-light relative overflow-hidden">
         {manga.coverImage && !imageError ? (
-          <>
-            {imageLoading && (
+          <CachedImage
+            src={manga.coverImage}
+            alt={manga.title}
+            chapterId={`cover-${manga.id}`}
+            pageNumber={1}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={handleImageError}
+            loading="lazy"
+            placeholder={
               <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50 animate-pulse">
                 📚
               </div>
-            )}
-            <img
-              src={manga.coverImage}
-              alt={manga.title}
-              className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                imageLoading ? 'opacity-0' : 'opacity-100'
-              }`}
-              loading="lazy"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              crossOrigin="anonymous"
-            />
-          </>
+            }
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl text-manga-text/50">
             📚

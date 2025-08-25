@@ -64,7 +64,8 @@ const MangaDetailPage = () => {
     navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.id || chapter.number}`, {
       state: { 
         chapterUrl: chapter.url,
-        chapterData: chapter
+        chapterData: chapter,
+        mangaData: manga // Pass full manga data for navigation
       }
     });
   };

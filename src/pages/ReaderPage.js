@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import apiService from '../services/apiService';
+import imageCacheService from '../services/imageCacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
+import CachedImage from '../components/CachedImage';
 
 const ReaderPage = () => {
-  const { site, chapter } = useParams();
+  const { site, id, chapter } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { settings } = useSettings();
@@ -19,6 +21,64 @@ const ReaderPage = () => {
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
   const chapterData = location.state?.chapterData;
+  const mangaData = location.state?.mangaData;
+
+  // Helper function to get image styles based on zoom settings
+  const getImageStyles = (isDoublePageMode = false) => {
+    if (settings.zoom.fitToWidth) {
+      // When zoom control is enabled, use the zoom percentage
+      const zoomPercentage = isDoublePageMode 
+        ? Math.floor(settings.zoom.defaultZoom / 2) // Split for double page
+        : settings.zoom.defaultZoom;
+      
+      return {
+        width: `${zoomPercentage}%`,
+        maxWidth: `${zoomPercentage}%`,
+        height: 'auto',
+        display: 'block',
+        margin: '0 auto'
+      };
+    } else {
+      // When zoom control is disabled, use natural image size
+      return {
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '100%',
+        display: 'block',
+        margin: '0 auto'
+      };
+    }
+  };
+
+  // Find next chapter for navigation
+  const getNextChapter = () => {
+    if (!mangaData?.chapters || !chapterData) return null;
+    
+    const currentChapterIndex = mangaData.chapters.findIndex(
+      ch => (ch.id || ch.number) === (chapterData.id || chapterData.number)
+    );
+    
+    if (currentChapterIndex >= 0 && currentChapterIndex < mangaData.chapters.length - 1) {
+      return mangaData.chapters[currentChapterIndex + 1];
+    }
+    
+    return null;
+  };
+
+  const nextChapter = getNextChapter();
+
+  const goToNextChapter = () => {
+    if (nextChapter) {
+      const mangaId = mangaData?.id || id; // fallback to URL param if no manga data
+      navigate(`/reader/${site}/${encodeURIComponent(mangaId)}/${nextChapter.id || nextChapter.number}`, {
+        state: { 
+          chapterUrl: nextChapter.url,
+          chapterData: nextChapter,
+          mangaData: mangaData
+        }
+      });
+    }
+  };
 
   const loadChapterPages = useCallback(async () => {
     try {
@@ -34,6 +94,12 @@ const ReaderPage = () => {
       
       if (response.success) {
         setPages(response.data.pages);
+        
+        // Preload images in the background for better performance
+        const chapterId = chapterData?.id || chapterData?.number || chapter;
+        setTimeout(() => {
+          imageCacheService.preloadChapterImages(response.data.pages, chapterId);
+        }, 1000); // Small delay to let the UI load first
       } else {
         setError(response.error || 'Failed to load chapter pages');
       }
@@ -209,12 +275,22 @@ const ReaderPage = () => {
                 }
               </p>
             </div>
-            <button
-              onClick={() => setShowUI(false)}
-              className="text-white/70 hover:text-white transition-colors"
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2">
+              {nextChapter && (
+                <button
+                  onClick={goToNextChapter}
+                  className="text-white/70 hover:text-white transition-colors text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded"
+                >
+                  Next →
+                </button>
+              )}
+              <button
+                onClick={() => setShowUI(false)}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -226,19 +302,19 @@ const ReaderPage = () => {
           <div className="max-w-4xl mx-auto space-y-4">
             {pages.map((page, index) => (
               <div key={index} className="flex justify-center">
-                <img
+                <CachedImage
                   src={page.url}
                   alt={`Page ${index + 1}`}
+                  chapterId={chapterData?.id || chapterData?.number || chapter}
+                  pageNumber={index + 1}
                   className="manga-page cursor-pointer select-none max-w-full h-auto"
+                  style={getImageStyles()}
                   onClick={() => setShowUI(!showUI)}
-                  crossOrigin="anonymous"
-                  style={{
-                    width: settings.zoom.fitToWidth ? '100%' : 'auto',
-                    maxWidth: settings.zoom.fitToWidth ? '100%' : `${settings.zoom.defaultZoom}%`
-                  }}
-                  onError={(e) => {
-                    e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${index + 1}%20Error`;
-                  }}
+                  placeholder={
+                    <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-full">
+                      <div className="text-gray-400">Loading page {index + 1}...</div>
+                    </div>
+                  }
                 />
               </div>
             ))}
@@ -247,58 +323,99 @@ const ReaderPage = () => {
           // Double Page Mode
           <div className="max-w-6xl mx-auto flex gap-4 justify-center">
             {currentPage < pages.length && (
-              <img
+              <CachedImage
                 src={pages[currentPage].url}
                 alt={`Page ${currentPage + 1}`}
+                chapterId={chapterData?.id || chapterData?.number || chapter}
+                pageNumber={currentPage + 1}
                 className="manga-page cursor-pointer select-none"
+                style={getImageStyles(true)}
                 onClick={handleImageClick}
-                crossOrigin="anonymous"
-                style={{
-                  width: settings.zoom.fitToWidth ? '48%' : 'auto',
-                  maxWidth: settings.zoom.fitToWidth ? '48%' : `${settings.zoom.defaultZoom}%`
-                }}
-                onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
-                }}
+                placeholder={
+                  <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-96">
+                    <div className="text-gray-400">Loading page {currentPage + 1}...</div>
+                  </div>
+                }
               />
             )}
             {currentPage + 1 < pages.length && (
-              <img
+              <CachedImage
                 src={pages[currentPage + 1].url}
                 alt={`Page ${currentPage + 2}`}
+                chapterId={chapterData?.id || chapterData?.number || chapter}
+                pageNumber={currentPage + 2}
                 className="manga-page cursor-pointer select-none"
+                style={getImageStyles(true)}
                 onClick={handleImageClick}
-                crossOrigin="anonymous"
-                style={{
-                  width: settings.zoom.fitToWidth ? '48%' : 'auto',
-                  maxWidth: settings.zoom.fitToWidth ? '48%' : `${settings.zoom.defaultZoom}%`
-                }}
-                onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 2}%20Error`;
-                }}
+                placeholder={
+                  <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-96">
+                    <div className="text-gray-400">Loading page {currentPage + 2}...</div>
+                  </div>
+                }
               />
             )}
           </div>
         ) : (
           // Single Page Mode
           <div className="max-w-4xl mx-auto">
-            <img
+            <CachedImage
               src={currentPageData.url}
               alt={`Page ${currentPage + 1}`}
+              chapterId={chapterData?.id || chapterData?.number || chapter}
+              pageNumber={currentPage + 1}
               className="manga-page cursor-pointer select-none"
+              style={getImageStyles()}
               onClick={handleImageClick}
-              crossOrigin="anonymous"
-              style={{
-                width: settings.zoom.fitToWidth ? '100%' : 'auto',
-                maxWidth: settings.zoom.fitToWidth ? '100%' : `${settings.zoom.defaultZoom}%`
-              }}
-              onError={(e) => {
-                e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
-              }}
+              placeholder={
+                <div className="bg-gray-800 flex items-center justify-center min-h-[400px] w-full">
+                  <div className="text-gray-400">Loading page {currentPage + 1}...</div>
+                </div>
+              }
             />
           </div>
         )}
       </div>
+
+      {/* Next Chapter Button - Show at end of chapter */}
+      {(settings.readingMode === 'scroll' || 
+        (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
+        (settings.readingMode === 'double' && currentPage >= pages.length - 2)
+       ) && (
+        <div className="flex flex-col items-center py-8 bg-black border-t border-white/20">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-white mb-2">Chapter Complete!</h2>
+            <p className="text-white/70">
+              {chapterData ? 
+                `You've finished Chapter ${chapterData.number}` : 
+                'You\'ve reached the end of this chapter'
+              }
+            </p>
+          </div>
+          
+          <div className="flex gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              ← Back to Chapters
+            </button>
+            
+            {nextChapter ? (
+              <button
+                onClick={goToNextChapter}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
+              >
+                <span>Next: Chapter {nextChapter.number}</span>
+                <span>→</span>
+              </button>
+            ) : (
+              <div className="px-6 py-3 bg-gray-800 text-gray-400 rounded-lg">
+                No more chapters available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Bottom UI Bar */}
       {showUI && settings.readingMode !== 'scroll' && (

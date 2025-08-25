@@ -355,3 +355,9 @@ html {
     transform: translate3d(0,0,0);
   }
 }
+
+/* Loading spinner animation for cached images */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
