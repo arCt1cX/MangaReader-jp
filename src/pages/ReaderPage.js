@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import apiService from '../services/apiService';
+import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReaderPage = () => {
@@ -48,6 +49,11 @@ const ReaderPage = () => {
     }
   };
 
+  // Get page spacing styles
+  const getPageSpacingStyle = () => {
+    return { marginBottom: `${settings.pageSpacing * 8}px` }; // 0-80px spacing
+  };
+
   // Find next chapter for navigation
   const getNextChapter = () => {
     if (!mangaData?.chapters || !chapterData) return null;
@@ -56,8 +62,9 @@ const ReaderPage = () => {
       ch => (ch.id || ch.number) === (chapterData.id || chapterData.number)
     );
     
-    if (currentChapterIndex >= 0 && currentChapterIndex < mangaData.chapters.length - 1) {
-      return mangaData.chapters[currentChapterIndex + 1];
+    // Chapters are ordered with latest first, so next chapter has a lower index
+    if (currentChapterIndex > 0) {
+      return mangaData.chapters[currentChapterIndex - 1];
     }
     
     return null;
@@ -88,10 +95,23 @@ const ReaderPage = () => {
       console.log('Loading chapter with identifier:', chapterIdentifier);
       console.log('Site:', site);
       
+      // Check cache first
+      const cachedData = chapterCache.get(id, chapter);
+      if (cachedData && cachedData.pages) {
+        console.log('📦 Using cached chapter data');
+        setPages(cachedData.pages);
+        setLoading(false);
+        return;
+      }
+      
+      // Not in cache, fetch from API
+      console.log('🌐 Fetching chapter from API');
       const response = await apiService.getChapterImages(chapterIdentifier, site);
       
       if (response.success) {
         setPages(response.data.pages);
+        // Cache the response for future use
+        chapterCache.set(id, chapter, response.data);
       } else {
         setError(response.error || 'Failed to load chapter pages');
       }
@@ -101,7 +121,7 @@ const ReaderPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [site, chapter, chapterUrl]);
+  }, [site, id, chapter, chapterUrl]);
 
   useEffect(() => {
     loadChapterPages();
@@ -111,6 +131,15 @@ const ReaderPage = () => {
     // Auto-hide UI after 3 seconds
     const timer = setTimeout(() => setShowUI(false), 3000);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Clean up expired cache entries periodically
+    const cleanup = setInterval(() => {
+      chapterCache.clearExpired();
+    }, 5 * 60 * 1000); // Clean every 5 minutes
+    
+    return () => clearInterval(cleanup);
   }, []);
 
   const goToNextPage = useCallback(() => {
@@ -291,9 +320,13 @@ const ReaderPage = () => {
       <div className="flex items-center justify-center min-h-screen p-4">
         {settings.readingMode === 'scroll' ? (
           // Continuous Scroll Mode
-          <div className="max-w-4xl mx-auto space-y-4">
+          <div className="max-w-4xl mx-auto">
             {pages.map((page, index) => (
-              <div key={index} className="flex justify-center">
+              <div 
+                key={index} 
+                className="flex justify-center"
+                style={index < pages.length - 1 ? getPageSpacingStyle() : {}}
+              >
                 <img
                   src={page.url}
                   alt={`Page ${index + 1}`}
@@ -310,7 +343,10 @@ const ReaderPage = () => {
           </div>
         ) : settings.readingMode === 'double' ? (
           // Double Page Mode
-          <div className="max-w-6xl mx-auto flex gap-4 justify-center">
+          <div 
+            className="max-w-6xl mx-auto flex justify-center"
+            style={{ gap: `${settings.pageSpacing * 4}px` }}
+          >
             {currentPage < pages.length && (
               <img
                 src={pages[currentPage].url}

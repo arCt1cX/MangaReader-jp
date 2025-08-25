@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import imageCacheService from '../services/imageCacheService';
 
 const SettingsPage = () => {
   const { 
@@ -8,46 +7,11 @@ const SettingsPage = () => {
     updateReadingMode, 
     updateJapaneseHelper, 
     updatePageTransition,
+    updatePageSpacing,
     updateZoomSettings,
     updateTheme,
     resetSettings 
   } = useSettings();
-
-  const [cacheStats, setCacheStats] = useState({ totalEntries: 0, totalSize: 0, totalSizeMB: '0' });
-  const [clearingCache, setClearingCache] = useState(false);
-
-  // Load cache statistics
-  useEffect(() => {
-    const loadCacheStats = async () => {
-      try {
-        const stats = await imageCacheService.getCacheStats();
-        setCacheStats(stats);
-      } catch (error) {
-        console.error('Failed to load cache stats:', error);
-      }
-    };
-
-    loadCacheStats();
-    // Refresh stats every 10 seconds
-    const interval = setInterval(loadCacheStats, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleClearCache = async () => {
-    if (window.confirm('Are you sure you want to clear all cached images? This will remove downloaded chapter images and they will need to be downloaded again.')) {
-      setClearingCache(true);
-      try {
-        await imageCacheService.clearCache();
-        setCacheStats({ totalEntries: 0, totalSize: 0, totalSizeMB: '0' });
-        alert('Cache cleared successfully!');
-      } catch (error) {
-        console.error('Failed to clear cache:', error);
-        alert('Failed to clear cache. Please try again.');
-      } finally {
-        setClearingCache(false);
-      }
-    }
-  };
 
   const handleJapaneseHelperChange = (key, value) => {
     updateJapaneseHelper({ [key]: value });
@@ -186,6 +150,34 @@ const SettingsPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Page Spacing Settings */}
+            <div>
+              <label className="block text-manga-text font-medium mb-2">
+                Page Spacing
+              </label>
+              <div>
+                <label className="block text-sm text-manga-text/70 mb-2">
+                  Distance between pages: {settings.pageSpacing}
+                  {settings.pageSpacing === 0 && ' (No gap)'}
+                  {settings.pageSpacing > 0 && settings.pageSpacing <= 3 && ' (Close)'}
+                  {settings.pageSpacing > 3 && settings.pageSpacing <= 7 && ' (Medium)'}
+                  {settings.pageSpacing > 7 && ' (Far)'}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={settings.pageSpacing}
+                  onChange={(e) => updatePageSpacing(parseInt(e.target.value))}
+                  className="w-full h-2 bg-manga-light rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-manga-text/50 mt-1">
+                  <span>0 (Attached)</span>
+                  <span>10 (Far apart)</span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -301,43 +293,6 @@ const SettingsPage = () => {
                 </div>
               </div>
             )}
-          </div>
-        </section>
-
-        {/* Cache Management */}
-        <section className="bg-manga-gray rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-manga-text mb-4">
-            💾 Cache Management
-          </h2>
-          <div className="space-y-4">
-            <p className="text-manga-text/70 text-sm">
-              Images are cached locally to reduce bandwidth usage and improve loading speed. 
-              Cached images expire automatically after 30 minutes.
-            </p>
-            
-            <div className="bg-manga-dark rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-manga-text text-sm">Cached Images:</span>
-                <span className="text-manga-accent font-semibold">{cacheStats.totalEntries}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-manga-text text-sm">Cache Size:</span>
-                <span className="text-manga-accent font-semibold">{cacheStats.totalSizeMB} MB</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleClearCache}
-                disabled={clearingCache || cacheStats.totalEntries === 0}
-                className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                {clearingCache ? 'Clearing...' : 'Clear Cache'}
-              </button>
-              <span className="text-manga-text/50 text-xs">
-                {cacheStats.totalEntries === 0 ? 'No cached images' : 'This will free up storage space'}
-              </span>
-            </div>
           </div>
         </section>
 

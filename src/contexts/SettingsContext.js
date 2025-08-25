@@ -9,6 +9,7 @@ const SETTINGS_ACTIONS = {
   UPDATE_JAPANESE_HELPER: 'UPDATE_JAPANESE_HELPER',
   UPDATE_AUTO_TRANSLATE: 'UPDATE_AUTO_TRANSLATE',
   UPDATE_PAGE_TRANSITION: 'UPDATE_PAGE_TRANSITION',
+  UPDATE_PAGE_SPACING: 'UPDATE_PAGE_SPACING',
   UPDATE_ZOOM_SETTINGS: 'UPDATE_ZOOM_SETTINGS',
   UPDATE_CUSTOM_SITES: 'UPDATE_CUSTOM_SITES',
   UPDATE_THEME: 'UPDATE_THEME',
@@ -19,6 +20,7 @@ const SETTINGS_ACTIONS = {
 const DEFAULT_SETTINGS = {
   readingMode: 'single', // 'single', 'double', 'scroll'
   pageTransition: 'slide', // 'slide', 'fade', 'none'
+  pageSpacing: 5, // 0-10, distance between pages
   japaneseHelper: {
     enabled: true,
     showFurigana: true,
@@ -80,6 +82,12 @@ function settingsReducer(state, action) {
       return {
         ...state,
         pageTransition: action.payload
+      };
+
+    case SETTINGS_ACTIONS.UPDATE_PAGE_SPACING:
+      return {
+        ...state,
+        pageSpacing: action.payload
       };
 
     case SETTINGS_ACTIONS.UPDATE_ZOOM_SETTINGS:
@@ -168,6 +176,13 @@ export function SettingsProvider({ children }) {
     });
   };
 
+  const updatePageSpacing = (spacing) => {
+    dispatch({
+      type: SETTINGS_ACTIONS.UPDATE_PAGE_SPACING,
+      payload: spacing
+    });
+  };
+
   const updateZoomSettings = (zoomSettings) => {
     dispatch({
       type: SETTINGS_ACTIONS.UPDATE_ZOOM_SETTINGS,
@@ -201,6 +216,7 @@ export function SettingsProvider({ children }) {
     updateJapaneseHelper,
     updateAutoTranslate,
     updatePageTransition,
+    updatePageSpacing,
     updateZoomSettings,
     updateCustomSites,
     updateTheme,
