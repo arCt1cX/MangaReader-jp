@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLibrary } from '../contexts/LibraryContext';
 import CachedImage from './CachedImage';
 
