@@ -63,19 +63,31 @@ function libraryReducer(state, action) {
 
     case LIBRARY_ACTIONS.MARK_CHAPTER_READ:
       const { mangaId: readMangaId, chapterNumber: readChapter } = action.payload;
-      if (!state[readMangaId]) return state; // Not in library, don't track
+      console.log(`📖 Marking chapter ${readChapter} as read for manga ${readMangaId}`);
       
-      return {
+      if (!state[readMangaId]) {
+        console.log(`❌ Manga ${readMangaId} not in library, skipping chapter tracking`);
+        return state; // Not in library, don't track
+      }
+      
+      // Ensure chapter number is treated as a number for consistency
+      const readChapterNum = parseFloat(readChapter);
+      console.log(`🔢 Parsed chapter number: ${readChapterNum} (from ${readChapter})`);
+      
+      const updatedLibraryState = {
         ...state,
         [readMangaId]: {
           ...state[readMangaId],
-          currentChapter: readChapter,
+          currentChapter: readChapterNum,
           lastRead: new Date().toISOString(),
-          chaptersRead: state[readMangaId]?.chaptersRead?.includes(readChapter)
+          chaptersRead: state[readMangaId]?.chaptersRead?.includes(readChapterNum)
             ? state[readMangaId].chaptersRead
-            : [...(state[readMangaId]?.chaptersRead || []), readChapter].sort((a, b) => a - b)
+            : [...(state[readMangaId]?.chaptersRead || []), readChapterNum].sort((a, b) => a - b)
         }
       };
+      
+      console.log(`📚 Updated chapters read for ${readMangaId}:`, updatedLibraryState[readMangaId].chaptersRead);
+      return updatedLibraryState;
 
     case LIBRARY_ACTIONS.CLEAR_LIBRARY:
       return {};
@@ -179,29 +191,36 @@ export function LibraryProvider({ children }) {
 
   const isChapterRead = (mangaId, chapterNumber) => {
     const manga = library[mangaId];
-    return manga?.chaptersRead?.includes(chapterNumber) || false;
+    const chapterNum = parseFloat(chapterNumber);
+    return manga?.chaptersRead?.includes(chapterNum) || false;
   };
 
   const getNextUnreadChapter = (mangaId, chapters) => {
     const manga = library[mangaId];
     if (!manga || !chapters || chapters.length === 0) return null;
     
-    // Sort chapters by number (ascending)
+    // Sort chapters by number (ascending) - first chapter should have lowest number
     const sortedChapters = [...chapters].sort((a, b) => {
       const aNum = parseFloat(a.number || a.id);
       const bNum = parseFloat(b.number || b.id);
       return aNum - bNum;
     });
     
+    console.log('📚 Sorted chapters:', sortedChapters.map(ch => parseFloat(ch.number || ch.id)));
+    console.log('📖 Chapters read:', manga.chaptersRead || []);
+    
     // Find first unread chapter
     for (const chapter of sortedChapters) {
       const chapterNum = parseFloat(chapter.number || chapter.id);
       if (!manga.chaptersRead?.includes(chapterNum)) {
+        console.log(`📍 Next unread chapter: ${chapterNum}`);
         return chapter;
       }
     }
     
-    // All chapters read, return last chapter
+    // All chapters read, return the next chapter that would come after the last read
+    // or just return the last chapter if we're caught up
+    console.log('📚 All chapters read, returning last chapter');
     return sortedChapters[sortedChapters.length - 1];
   };
 

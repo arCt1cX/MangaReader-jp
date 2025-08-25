@@ -80,7 +80,21 @@ const ReaderPage = () => {
       // Mark current chapter as read if manga is in library
       const mangaId = mangaData?.id || id;
       if (isMangaInLibrary(mangaId)) {
-        const currentChapterNum = parseFloat(chapter);
+        // Get the current chapter number from chapterData or find it in mangaData
+        let currentChapterNum;
+        if (chapterData?.number) {
+          currentChapterNum = parseFloat(chapterData.number);
+        } else if (chapterData?.id) {
+          currentChapterNum = parseFloat(chapterData.id);
+        } else {
+          // Fallback: find current chapter in manga chapters list
+          const currentChapter = mangaData?.chapters?.find(ch => 
+            ch.id === chapter || ch.number === chapter || 
+            ch.id === parseFloat(chapter) || ch.number === parseFloat(chapter)
+          );
+          currentChapterNum = parseFloat(currentChapter?.number || currentChapter?.id || chapter);
+        }
+        
         markChapterRead(mangaId, currentChapterNum);
         console.log(`📖 Marked chapter ${currentChapterNum} as read for manga ${mangaId}`);
       }

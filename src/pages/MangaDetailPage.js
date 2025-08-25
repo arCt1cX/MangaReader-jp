@@ -245,12 +245,39 @@ const MangaDetailPage = () => {
                 </button>
                 {/* Continue Reading / Start from Chapter 1 Button */}
                 {manga.chapters && manga.chapters.length > 0 && (() => {
-                  const nextChapter = isInLibrary 
-                    ? getNextUnreadChapter(manga.id, manga.chapters)
-                    : manga.chapters[manga.chapters.length - 1]; // First chapter (sorted last in the array)
+                  // For non-library manga, start from first chapter (lowest number)
+                  if (!isInLibrary) {
+                    const firstChapter = [...manga.chapters].sort((a, b) => {
+                      const aNum = parseFloat(a.number || a.id);
+                      const bNum = parseFloat(b.number || b.id);
+                      return aNum - bNum;
+                    })[0];
+                    
+                    return (
+                      <button
+                        className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200 flex items-center gap-2 justify-center"
+                        onClick={() => handleChapterClick(firstChapter)}
+                      >
+                        <Icon name="play" size={16} />
+                        Start from Chapter {parseFloat(firstChapter?.number || firstChapter?.id)}
+                      </button>
+                    );
+                  }
                   
-                  const isFirstChapter = nextChapter === manga.chapters[manga.chapters.length - 1];
+                  // For library manga, get next unread chapter
+                  const nextChapter = getNextUnreadChapter(manga.id, manga.chapters);
+                  if (!nextChapter) return null;
+                  
                   const chapterNum = parseFloat(nextChapter?.number || nextChapter?.id);
+                  
+                  // Check if this is truly the first chapter by comparing to sorted chapters
+                  const sortedChapters = [...manga.chapters].sort((a, b) => {
+                    const aNum = parseFloat(a.number || a.id);
+                    const bNum = parseFloat(b.number || b.id);
+                    return aNum - bNum;
+                  });
+                  const firstChapterNum = parseFloat(sortedChapters[0]?.number || sortedChapters[0]?.id);
+                  const isFirstChapter = chapterNum === firstChapterNum;
                   
                   return (
                     <button
@@ -258,9 +285,9 @@ const MangaDetailPage = () => {
                       onClick={() => handleChapterClick(nextChapter)}
                     >
                       <Icon name="play" size={16} />
-                      {isInLibrary && !isFirstChapter 
-                        ? `Continue from Chapter ${chapterNum}`
-                        : 'Start from Chapter 1'
+                      {isFirstChapter 
+                        ? `Start from Chapter ${chapterNum}`
+                        : `Continue from Chapter ${chapterNum}`
                       }
                     </button>
                   );
