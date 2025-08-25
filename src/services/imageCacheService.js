@@ -59,16 +59,23 @@ class ImageCacheService {
 
   // Get cached image URL with cache-friendly parameters
   getCachedImageUrl(originalUrl) {
+    // If URL is already going through image proxy, don't add cache parameters
+    if (originalUrl.includes('/api/manga/image-proxy')) {
+      return originalUrl;
+    }
+
     const key = this.getCacheKey(originalUrl);
     const metadata = this.cacheMetadata.get(key);
     
     if (!metadata || Date.now() - metadata.timestamp > this.CACHE_DURATION) {
       // Not cached or expired, return original URL with cache buster to ensure fresh fetch
-      return `${originalUrl}&_cb=${Date.now()}`;
+      const separator = originalUrl.includes('?') ? '&' : '?';
+      return `${originalUrl}${separator}_cb=${Date.now()}`;
     }
 
     // Cached and valid, return URL with cache timestamp to leverage browser cache
-    return `${originalUrl}&_cache=${metadata.timestamp}`;
+    const separator = originalUrl.includes('?') ? '&' : '?';
+    return `${originalUrl}${separator}_cache=${metadata.timestamp}`;
   }
 
   // Mark image as cached

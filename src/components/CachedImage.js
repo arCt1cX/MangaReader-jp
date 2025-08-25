@@ -22,8 +22,6 @@ const CachedImage = ({
 
     // Get cached version of the image URL
     const cachedUrl = imageCacheService.getCachedImageUrl(src);
-    console.log('CachedImage: Original URL:', src);
-    console.log('CachedImage: Cached URL:', cachedUrl);
     setImageSrc(cachedUrl);
     setImageError(false);
     setIsLoading(true);
@@ -44,20 +42,27 @@ const CachedImage = ({
   };
 
   const handleImageError = (e) => {
-    console.error('CachedImage: Image failed to load:', {
-      originalSrc: src,
-      imageSrc: imageSrc,
-      error: e
-    });
+    console.log('Image failed to load:', imageSrc, e);
     setIsLoading(false);
-    setImageError(true);
     
-    // Try fallback image if provided
+    // If this is a CORS error or the image failed to load from proxy, try fallback
     if (fallbackSrc && imageSrc !== fallbackSrc) {
-      console.log('CachedImage: Trying fallback:', fallbackSrc);
+      console.log('Trying fallback image:', fallbackSrc);
       setImageSrc(fallbackSrc);
+      setImageError(false);
       return;
     }
+    
+    // If proxy URL failed and we haven't tried without cache parameters, try that
+    if (imageSrc.includes('/api/manga/image-proxy') && (imageSrc.includes('_cb=') || imageSrc.includes('_cache='))) {
+      const baseUrl = imageSrc.split('&_')[0]; // Remove cache parameters
+      console.log('Retrying without cache parameters:', baseUrl);
+      setImageSrc(baseUrl);
+      setImageError(false);
+      return;
+    }
+    
+    setImageError(true);
     
     if (onError) {
       onError(e);
