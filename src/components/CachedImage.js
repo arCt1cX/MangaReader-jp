@@ -22,6 +22,8 @@ const CachedImage = ({
 
     // Get cached version of the image URL
     const cachedUrl = imageCacheService.getCachedImageUrl(src);
+    console.log('CachedImage: Original URL:', src);
+    console.log('CachedImage: Cached URL:', cachedUrl);
     setImageSrc(cachedUrl);
     setImageError(false);
     setIsLoading(true);
@@ -42,11 +44,17 @@ const CachedImage = ({
   };
 
   const handleImageError = (e) => {
+    console.error('CachedImage: Image failed to load:', {
+      originalSrc: src,
+      imageSrc: imageSrc,
+      error: e
+    });
     setIsLoading(false);
     setImageError(true);
     
     // Try fallback image if provided
     if (fallbackSrc && imageSrc !== fallbackSrc) {
+      console.log('CachedImage: Trying fallback:', fallbackSrc);
       setImageSrc(fallbackSrc);
       return;
     }
