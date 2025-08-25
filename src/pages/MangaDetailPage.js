@@ -82,12 +82,17 @@ const MangaDetailPage = () => {
   };
 
   const handleBackNavigation = () => {
+    console.log('🔙 Back button clicked - referrerPath:', referrerPath);
+    console.log('🔙 location.state:', location.state);
+    
     // Smart back navigation: try to go to the original page instead of just browser history
     if (referrerPath) {
       // If we know where they came from, go there directly
+      console.log('🔙 Navigating to referrerPath:', referrerPath);
       navigate(referrerPath);
     } else {
       // If we can detect common patterns, navigate appropriately
+      console.log('🔙 No referrerPath, checking document.referrer:', document.referrer);
       if (document.referrer.includes('/search') || document.referrer.includes('?query=')) {
         navigate('/search');
       } else if (document.referrer.includes('/library')) {
@@ -112,7 +117,7 @@ const MangaDetailPage = () => {
         chapterUrl: chapter.url,
         chapterData: chapter,
         mangaData: manga, // Pass full manga data for navigation
-        from: location.pathname // Track current page for back navigation
+        from: referrerPath || location.state?.from // Preserve the original referrer, don't overwrite it
       }
     });
   };
