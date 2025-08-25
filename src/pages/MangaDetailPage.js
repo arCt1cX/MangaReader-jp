@@ -10,7 +10,7 @@ const MangaDetailPage = () => {
   const { site, id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { addManga, removeManga, isMangaInLibrary } = useLibrary();
+  const { addManga, removeManga, isMangaInLibrary, isChapterRead, getNextUnreadChapter } = useLibrary();
   
   const [manga, setManga] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -243,16 +243,28 @@ const MangaDetailPage = () => {
                   <Icon name={isInLibrary ? "heartFilled" : "heart"} size={16} />
                   {isInLibrary ? 'Remove from Library' : 'Add to Library'}
                 </button>
-                {/* Start from Chapter 1 Button */}
-                {manga.chapters && manga.chapters.length > 0 && (
-                  <button
-                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200 flex items-center gap-2 justify-center"
-                    onClick={() => handleChapterClick(manga.chapters[manga.chapters.length - 1])}
-                  >
-                    <Icon name="play" size={16} />
-                    Start from Chapter 1
-                  </button>
-                )}
+                {/* Continue Reading / Start from Chapter 1 Button */}
+                {manga.chapters && manga.chapters.length > 0 && (() => {
+                  const nextChapter = isInLibrary 
+                    ? getNextUnreadChapter(manga.id, manga.chapters)
+                    : manga.chapters[manga.chapters.length - 1]; // First chapter (sorted last in the array)
+                  
+                  const isFirstChapter = nextChapter === manga.chapters[manga.chapters.length - 1];
+                  const chapterNum = parseFloat(nextChapter?.number || nextChapter?.id);
+                  
+                  return (
+                    <button
+                      className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200 flex items-center gap-2 justify-center"
+                      onClick={() => handleChapterClick(nextChapter)}
+                    >
+                      <Icon name="play" size={16} />
+                      {isInLibrary && !isFirstChapter 
+                        ? `Continue from Chapter ${chapterNum}`
+                        : 'Start from Chapter 1'
+                      }
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -275,26 +287,40 @@ const MangaDetailPage = () => {
           
           {manga.chapters && manga.chapters.length > 0 ? (
             <div className="space-y-2">
-              {manga.chapters.map((chapter) => (
-                <div
-                  key={chapter.number}
-                  onClick={() => handleChapterClick(chapter)}
-                  className="flex items-center justify-between p-3 hover:bg-manga-light rounded-lg cursor-pointer transition-colors touch-improvement"
-                >
-                  <div className="flex-1">
-                    <h4 className="font-medium text-manga-text">
-                      Chapter {chapter.number}
-                      {chapter.title && ` - ${chapter.title}`}
-                    </h4>
-                    {chapter.publishedAt && (
-                      <p className="text-sm text-manga-text/70">
-                        {new Date(chapter.publishedAt).toLocaleDateString()}
-                      </p>
-                    )}
+              {manga.chapters.map((chapter) => {
+                const chapterNum = parseFloat(chapter.number || chapter.id);
+                const isRead = isInLibrary && isChapterRead(manga.id, chapterNum);
+                
+                return (
+                  <div
+                    key={chapter.number}
+                    onClick={() => handleChapterClick(chapter)}
+                    className={`flex items-center justify-between p-3 hover:bg-manga-light rounded-lg cursor-pointer transition-colors touch-improvement ${
+                      isRead ? 'bg-manga-accent/10 border-l-4 border-manga-accent' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className={`font-medium ${isRead ? 'text-manga-accent' : 'text-manga-text'}`}>
+                          Chapter {chapter.number}
+                          {chapter.title && ` - ${chapter.title}`}
+                        </h4>
+                        {isRead && (
+                          <Icon name="check" size={16} color="var(--accent)" />
+                        )}
+                      </div>
+                      {chapter.publishedAt && (
+                        <p className="text-sm text-manga-text/70">
+                          {new Date(chapter.publishedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`${isRead ? 'text-manga-accent' : 'text-manga-accent'}`}>
+                      <Icon name="arrowRight" size={16} />
+                    </div>
                   </div>
-                  <div className="text-manga-accent">→</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-manga-text/70 text-center py-8">

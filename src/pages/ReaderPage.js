@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
+import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -10,6 +11,7 @@ const ReaderPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { settings } = useSettings();
+  const { markChapterRead, isMangaInLibrary } = useLibrary();
   
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -75,10 +77,17 @@ const ReaderPage = () => {
 
   const goToNextChapter = () => {
     if (nextChapter) {
+      // Mark current chapter as read if manga is in library
+      const mangaId = mangaData?.id || id;
+      if (isMangaInLibrary(mangaId)) {
+        const currentChapterNum = parseFloat(chapter);
+        markChapterRead(mangaId, currentChapterNum);
+        console.log(`📖 Marked chapter ${currentChapterNum} as read for manga ${mangaId}`);
+      }
+      
       // Explicitly reset to first page before navigation
       setCurrentPage(0);
       
-      const mangaId = mangaData?.id || id; // fallback to URL param if no manga data
       navigate(`/reader/${site}/${encodeURIComponent(mangaId)}/${nextChapter.id || nextChapter.number}`, {
         state: { 
           chapterUrl: nextChapter.url,

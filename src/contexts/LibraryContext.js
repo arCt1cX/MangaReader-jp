@@ -9,6 +9,7 @@ const LIBRARY_ACTIONS = {
   REMOVE_MANGA: 'REMOVE_MANGA',
   UPDATE_PROGRESS: 'UPDATE_PROGRESS',
   UPDATE_LAST_READ: 'UPDATE_LAST_READ',
+  MARK_CHAPTER_READ: 'MARK_CHAPTER_READ',
   CLEAR_LIBRARY: 'CLEAR_LIBRARY'
 };
 
@@ -57,6 +58,22 @@ function libraryReducer(state, action) {
         [action.payload.mangaId]: {
           ...state[action.payload.mangaId],
           lastRead: new Date().toISOString()
+        }
+      };
+
+    case LIBRARY_ACTIONS.MARK_CHAPTER_READ:
+      const { mangaId: readMangaId, chapterNumber: readChapter } = action.payload;
+      if (!state[readMangaId]) return state; // Not in library, don't track
+      
+      return {
+        ...state,
+        [readMangaId]: {
+          ...state[readMangaId],
+          currentChapter: readChapter,
+          lastRead: new Date().toISOString(),
+          chaptersRead: state[readMangaId]?.chaptersRead?.includes(readChapter)
+            ? state[readMangaId].chaptersRead
+            : [...(state[readMangaId]?.chaptersRead || []), readChapter].sort((a, b) => a - b)
         }
       };
 
@@ -125,6 +142,13 @@ export function LibraryProvider({ children }) {
     });
   };
 
+  const markChapterRead = (mangaId, chapterNumber) => {
+    dispatch({
+      type: LIBRARY_ACTIONS.MARK_CHAPTER_READ,
+      payload: { mangaId, chapterNumber }
+    });
+  };
+
   const clearLibrary = () => {
     dispatch({
       type: LIBRARY_ACTIONS.CLEAR_LIBRARY
@@ -153,17 +177,48 @@ export function LibraryProvider({ children }) {
       .slice(0, limit);
   };
 
+  const isChapterRead = (mangaId, chapterNumber) => {
+    const manga = library[mangaId];
+    return manga?.chaptersRead?.includes(chapterNumber) || false;
+  };
+
+  const getNextUnreadChapter = (mangaId, chapters) => {
+    const manga = library[mangaId];
+    if (!manga || !chapters || chapters.length === 0) return null;
+    
+    // Sort chapters by number (ascending)
+    const sortedChapters = [...chapters].sort((a, b) => {
+      const aNum = parseFloat(a.number || a.id);
+      const bNum = parseFloat(b.number || b.id);
+      return aNum - bNum;
+    });
+    
+    // Find first unread chapter
+    for (const chapter of sortedChapters) {
+      const chapterNum = parseFloat(chapter.number || chapter.id);
+      if (!manga.chaptersRead?.includes(chapterNum)) {
+        return chapter;
+      }
+    }
+    
+    // All chapters read, return last chapter
+    return sortedChapters[sortedChapters.length - 1];
+  };
+
   const value = {
     library,
     addManga,
     removeManga,
     updateProgress,
     updateLastRead,
+    markChapterRead,
     clearLibrary,
     isMangaInLibrary,
     getMangaProgress,
     getLibraryArray,
-    getRecentlyRead
+    getRecentlyRead,
+    isChapterRead,
+    getNextUnreadChapter
   };
 
   return (
