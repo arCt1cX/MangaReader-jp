@@ -209,7 +209,7 @@ html {
   --bg-tertiary: #1a1a1a;
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
-  --accent: #3b82f6;
+  --accent: #8b5cf6;
 }
 
 .theme-light {
@@ -219,7 +219,7 @@ html {
   --bg-tertiary: #e2e8f0;
   --text-primary: #1e293b;
   --text-secondary: rgba(30, 41, 59, 0.7);
-  --accent: #2563eb;
+  --accent: #059669;
 }
 
 .theme-amoled {
@@ -278,6 +278,30 @@ html {
 /* Special styling for light theme borders and shadows */
 .theme-light .shadow-lg {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure theme-aware hover states */
+.theme-standard .hover\:bg-manga-accent:hover,
+.theme-dark .hover\:bg-manga-accent:hover,
+.theme-light .hover\:bg-manga-accent:hover,
+.theme-amoled .hover\:bg-manga-accent:hover {
+  background-color: var(--accent) !important;
+  opacity: 0.9;
+}
+
+.theme-standard .hover\:text-manga-accent:hover,
+.theme-dark .hover\:text-manga-accent:hover,
+.theme-light .hover\:text-manga-accent:hover,
+.theme-amoled .hover\:text-manga-accent:hover {
+  color: var(--accent) !important;
+}
+
+/* Ensure opacity-based hover states work with theme colors */
+.theme-standard .hover\:opacity-90:hover,
+.theme-dark .hover\:opacity-90:hover,
+.theme-light .hover\:opacity-90:hover,
+.theme-amoled .hover\:opacity-90:hover {
+  opacity: 0.9 !important;
 }
 
 .theme-light .border-manga-light {
