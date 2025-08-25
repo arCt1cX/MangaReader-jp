@@ -80,7 +80,8 @@ const ReaderPage = () => {
         state: { 
           chapterUrl: nextChapter.url,
           chapterData: nextChapter,
-          mangaData: mangaData
+          mangaData: mangaData,
+          from: location.state?.from // Preserve the original referrer
         }
       });
     }
@@ -89,7 +90,12 @@ const ReaderPage = () => {
   const goToMangaDetails = () => {
     // Navigate directly to manga details page instead of going back in history
     const mangaId = mangaData?.id || id; // fallback to URL param if no manga data
-    navigate(`/manga/${site}/${encodeURIComponent(mangaId)}`);
+    navigate(`/manga/${site}/${encodeURIComponent(mangaId)}`, {
+      state: {
+        mangaData: mangaData,
+        from: location.state?.from // Preserve the original referrer
+      }
+    });
   };
 
   const loadChapterPages = useCallback(async () => {
@@ -133,6 +139,8 @@ const ReaderPage = () => {
   }, [site, id, chapter, chapterUrl]);
 
   useEffect(() => {
+    // Reset to first page when chapter changes
+    setCurrentPage(0);
     loadChapterPages();
   }, [loadChapterPages]);
 

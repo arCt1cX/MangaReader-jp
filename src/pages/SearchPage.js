@@ -68,7 +68,8 @@ const SearchPage = () => {
     navigate(`/manga/${site}/${encodeURIComponent(manga.id)}`, {
       state: { 
         mangaData: manga,
-        fromSearch: true 
+        fromSearch: true,
+        from: `/search/${site}` // Pass current page for back navigation
       }
     });
   };

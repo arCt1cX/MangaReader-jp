@@ -12,7 +12,8 @@ const LibraryPage = () => {
     navigate(`/manga/${manga.site}/${encodeURIComponent(manga.id)}`, {
       state: { 
         mangaData: manga,
-        fromLibrary: true 
+        fromLibrary: true,
+        from: '/library' // Pass current page for back navigation
       }
     });
   };

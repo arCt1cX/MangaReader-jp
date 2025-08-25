@@ -36,7 +36,8 @@ const HomePage = () => {
     navigate(`/manga/${manga.site}/${manga.id}`, {
       state: { 
         mangaData: manga,
-        fromLibrary: true 
+        fromLibrary: true,
+        from: '/' // Pass home page as referrer
       }
     });
   };

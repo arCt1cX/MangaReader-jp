@@ -16,6 +16,9 @@ const MangaDetailPage = () => {
 
   // Get manga data from navigation state if available
   const mangaFromState = location.state?.mangaData;
+  
+  // Track where user came from for smart back navigation
+  const referrerPath = location.state?.from;
 
   const isInLibrary = manga ? isMangaInLibrary(manga.id) : false;
 
@@ -59,13 +62,42 @@ const MangaDetailPage = () => {
     }
   };
 
+  const handleBackNavigation = () => {
+    // Smart back navigation: try to go to the original page instead of just browser history
+    if (referrerPath) {
+      // If we know where they came from, go there directly
+      navigate(referrerPath);
+    } else {
+      // Check current browser history to make intelligent decision
+      const currentPath = location.pathname;
+      const searchParams = new URLSearchParams(location.search);
+      
+      // If we can detect common patterns, navigate appropriately
+      if (document.referrer.includes('/search') || document.referrer.includes('?query=')) {
+        navigate('/search');
+      } else if (document.referrer.includes('/library')) {
+        navigate('/library');
+      } else {
+        // Default to browser back, but skip if the previous page was a reader page
+        const historyLength = window.history.length;
+        if (historyLength > 1) {
+          navigate(-1);
+        } else {
+          // Fallback to home if no history
+          navigate('/');
+        }
+      }
+    }
+  };
+
   const handleChapterClick = (chapter) => {
     // Pass chapter info through navigation state to avoid URL encoding issues
     navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.id || chapter.number}`, {
       state: { 
         chapterUrl: chapter.url,
         chapterData: chapter,
-        mangaData: manga // Pass full manga data for navigation
+        mangaData: manga, // Pass full manga data for navigation
+        from: location.pathname // Track current page for back navigation
       }
     });
   };
@@ -107,7 +139,7 @@ const MangaDetailPage = () => {
       <header className="bg-manga-gray shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBackNavigation}
             className="text-manga-accent hover:text-manga-text transition-colors mb-4"
           >
             ← Back
