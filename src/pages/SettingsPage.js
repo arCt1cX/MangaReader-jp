@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import imageCacheService from '../services/imageCacheService';
 
 const SettingsPage = () => {
   const { 
@@ -13,17 +12,21 @@ const SettingsPage = () => {
     updateTheme,
     resetSettings,
     getCacheStats,
-    clearCache
+    clearCache,
+    clearChapterCache,
+    clearImageCache
   } = useSettings();
 
-  const [cacheStats, setCacheStats] = useState({ count: 0, totalSizeMB: '0.00' });
-  const [imageCacheStats, setImageCacheStats] = useState({ valid: 0, total: 0 });
+  const [cacheStats, setCacheStats] = useState({ 
+    chapters: { count: 0, totalSizeMB: '0.00' },
+    images: { count: 0, totalSizeMB: '0.00' },
+    total: { count: 0, totalSizeMB: '0.00' }
+  });
 
   // Update cache stats on component mount and periodically
   useEffect(() => {
     const updateStats = () => {
       setCacheStats(getCacheStats());
-      setImageCacheStats(imageCacheService.getStats());
     };
 
     updateStats(); // Initial load
@@ -47,18 +50,44 @@ const SettingsPage = () => {
   };
 
   const handleClearCache = () => {
-    if (window.confirm(`Clear ${cacheStats.count} cached chapters (${cacheStats.totalSizeMB} MB)? This will free up memory but chapters will need to be reloaded.`)) {
+    if (window.confirm(`Clear all cache (${cacheStats.total.count} items, ${cacheStats.total.totalSizeMB} MB)? This will free up memory but content will need to be reloaded.`)) {
       const clearedStats = clearCache();
-      setCacheStats({ count: 0, totalSizeMB: '0.00' });
-      alert(`Cache cleared! Freed ${clearedStats.totalSizeMB} MB of memory.`);
+      setCacheStats({ 
+        chapters: { count: 0, totalSizeMB: '0.00' },
+        images: { count: 0, totalSizeMB: '0.00' },
+        total: { count: 0, totalSizeMB: '0.00' }
+      });
+      alert(`Cache cleared! Freed ${clearedStats.total.totalSizeMB} MB of memory.`);
+    }
+  };
+
+  const handleClearChapterCache = () => {
+    if (window.confirm(`Clear chapter cache (${cacheStats.chapters.count} chapters, ${cacheStats.chapters.totalSizeMB} MB)?`)) {
+      const clearedStats = clearChapterCache();
+      setCacheStats(prev => ({
+        ...prev,
+        chapters: { count: 0, totalSizeMB: '0.00' },
+        total: { 
+          count: prev.images.count,
+          totalSizeMB: prev.images.totalSizeMB
+        }
+      }));
+      alert(`Chapter cache cleared! Freed ${clearedStats.totalSizeMB} MB.`);
     }
   };
 
   const handleClearImageCache = () => {
-    if (window.confirm(`Clear ${imageCacheStats.valid} cached cover images? They will be reloaded when needed.`)) {
-      const clearedStats = imageCacheService.clear();
-      setImageCacheStats({ valid: 0, total: 0 });
-      alert(`Image cache cleared! Removed ${clearedStats.total} cached images.`);
+    if (window.confirm(`Clear image cache (${cacheStats.images.count} images, ${cacheStats.images.totalSizeMB} MB)?`)) {
+      const clearedStats = clearImageCache();
+      setCacheStats(prev => ({
+        ...prev,
+        images: { count: 0, totalSizeMB: '0.00' },
+        total: { 
+          count: prev.chapters.count,
+          totalSizeMB: prev.chapters.totalSizeMB
+        }
+      }));
+      alert(`Image cache cleared! Freed ${clearedStats.totalSizeMB} MB.`);
     }
   };
 
@@ -338,65 +367,50 @@ const SettingsPage = () => {
           </h2>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-manga-light rounded-lg p-4">
                 <div className="text-2xl font-bold text-manga-accent">
-                  {cacheStats.count}
+                  {cacheStats.chapters.count}
                 </div>
                 <div className="text-sm text-manga-text/70">
                   Cached Chapters
                 </div>
-                <div className="text-xs text-manga-text/50 mt-1">
-                  30 min duration
+                <div className="text-xs text-manga-text/50">
+                  {cacheStats.chapters.totalSizeMB} MB
                 </div>
               </div>
               
               <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-manga-accent">
-                  {cacheStats.totalSizeMB} MB
+                <div className="text-2xl font-bold text-green-500">
+                  {cacheStats.images.count}
                 </div>
                 <div className="text-sm text-manga-text/70">
-                  Chapter Data
+                  Cached Images
                 </div>
-                <div className="text-xs text-manga-text/50 mt-1">
-                  Memory used
+                <div className="text-xs text-manga-text/50">
+                  {cacheStats.images.totalSizeMB} MB
                 </div>
               </div>
 
               <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-500">
-                  {imageCacheStats.valid}
+                <div className="text-2xl font-bold text-purple-500">
+                  {cacheStats.total.totalSizeMB} MB
                 </div>
                 <div className="text-sm text-manga-text/70">
-                  Custom Cached Images
+                  Total Memory
                 </div>
-                <div className="text-xs text-manga-text/50 mt-1">
-                  Non-proxy images only
-                </div>
-              </div>
-
-              <div className="bg-manga-light rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-500">
-                  {imageCacheStats.total - imageCacheStats.valid}
-                </div>
-                <div className="text-sm text-manga-text/70">
-                  Expired Images
-                </div>
-                <div className="text-xs text-manga-text/50 mt-1">
-                  Auto cleanup
+                <div className="text-xs text-manga-text/50">
+                  {cacheStats.total.count} items
                 </div>
               </div>
             </div>
 
             <div className="text-sm text-manga-text/70">
               <p className="mb-2">
-                📦 <strong>Chapter Cache:</strong> 30 minutes per chapter - Fast re-reading
+                📦 <strong>Chapter Cache:</strong> 30 minutes per chapter
               </p>
               <p className="mb-2">
-                🖼️ <strong>Cover Images:</strong> Cached by browser for 7 days (automatic)
-              </p>
-              <p className="mb-2">
-                📷 <strong>Custom Cache:</strong> Tracks non-proxy images only
+                🖼️ <strong>Image Cache:</strong> 7 days for cover images
               </p>
               <p className="mb-2">
                 🚀 <strong>Benefits:</strong> Faster loading, reduced bandwidth usage
@@ -406,33 +420,47 @@ const SettingsPage = () => {
               </p>
             </div>
 
-            <div className="pt-4 border-t border-manga-light flex flex-wrap gap-3">
-              <button
-                onClick={handleClearCache}
-                disabled={cacheStats.count === 0}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  cacheStats.count === 0
-                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
-                    : 'bg-orange-600 hover:bg-orange-700 text-white'
-                }`}
-              >
-                🗑️ Clear Chapters ({cacheStats.count})
-              </button>
+            <div className="pt-4 border-t border-manga-light">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleClearCache}
+                  disabled={cacheStats.total.count === 0}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    cacheStats.total.count === 0
+                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+                >
+                  🗑️ Clear All Cache
+                </button>
 
-              <button
-                onClick={handleClearImageCache}
-                disabled={imageCacheStats.total === 0}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  imageCacheStats.total === 0
-                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-              >
-                🖼️ Clear Images ({imageCacheStats.total})
-              </button>
+                <button
+                  onClick={handleClearChapterCache}
+                  disabled={cacheStats.chapters.count === 0}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    cacheStats.chapters.count === 0
+                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                      : 'bg-orange-600 hover:bg-orange-700 text-white'
+                  }`}
+                >
+                  � Clear Chapters ({cacheStats.chapters.count})
+                </button>
+
+                <button
+                  onClick={handleClearImageCache}
+                  disabled={cacheStats.images.count === 0}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    cacheStats.images.count === 0
+                      ? 'bg-manga-light text-manga-text/50 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
+                >
+                  🖼️ Clear Images ({cacheStats.images.count})
+                </button>
+              </div>
               
-              {(cacheStats.count === 0 && imageCacheStats.total === 0) && (
-                <p className="text-xs text-manga-text/50 w-full mt-2">
+              {cacheStats.total.count === 0 && (
+                <p className="text-xs text-manga-text/50 mt-2">
                   No cached content to clear
                 </p>
               )}
