@@ -11,21 +11,22 @@ const CachedImage = ({
   ...props 
 }) => {
   const [imageSrc, setImageSrc] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!src) {
-      setLoading(false);
+      setIsLoading(false);
       setError(true);
       return;
     }
 
     let isMounted = true;
+    let blobUrlToCleanup = null;
 
     const loadImage = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         setError(false);
 
         // Try to get from cache first
@@ -33,7 +34,8 @@ const CachedImage = ({
         
         if (cachedUrl && isMounted) {
           setImageSrc(cachedUrl);
-          setLoading(false);
+          blobUrlToCleanup = cachedUrl;
+          setIsLoading(false);
           return;
         }
 
@@ -42,19 +44,20 @@ const CachedImage = ({
         
         if (newCachedUrl && isMounted) {
           setImageSrc(newCachedUrl);
+          blobUrlToCleanup = newCachedUrl;
         } else if (isMounted) {
           // Fallback to original URL if caching fails
           setImageSrc(src);
         }
 
         if (isMounted) {
-          setLoading(false);
+          setIsLoading(false);
         }
       } catch (err) {
         console.warn('CachedImage error:', err);
         if (isMounted) {
           setImageSrc(src); // Fallback to original URL
-          setLoading(false);
+          setIsLoading(false);
         }
       }
     };
@@ -64,20 +67,20 @@ const CachedImage = ({
     return () => {
       isMounted = false;
       // Clean up blob URLs to prevent memory leaks
-      if (imageSrc && imageSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(imageSrc);
+      if (blobUrlToCleanup && blobUrlToCleanup.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrlToCleanup);
       }
     };
-  }, [src]);
+  }, [src]); // Only depend on src, not imageSrc
 
   const handleLoad = (e) => {
-    setLoading(false);
+    setIsLoading(false);
     setError(false);
     if (onLoad) onLoad(e);
   };
 
   const handleError = (e) => {
-    setLoading(false);
+    setIsLoading(false);
     setError(true);
     if (onError) onError(e);
   };
