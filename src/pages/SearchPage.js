@@ -86,12 +86,14 @@ const SearchPage = () => {
       {/* Header */}
       <header className="bg-manga-gray shadow-lg sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+          {/* Back Button - Larger and Better Positioned */}
+          <div className="flex items-center mb-4">
             <button
               onClick={() => navigate(-1)}
-              className="text-manga-accent hover:text-manga-text transition-colors"
+              className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg mr-4 text-xl font-medium"
+              aria-label="Go back"
             >
-              ← Back
+              ←
             </button>
             <h1 className="text-2xl font-bold text-manga-text flex-1">
               Search {getSiteName()}
@@ -110,7 +112,7 @@ const SearchPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-manga-accent hover:bg-blue-600 disabled:bg-manga-light text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              className="bg-manga-accent hover:opacity-90 disabled:bg-manga-light disabled:opacity-50 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200"
             >
               {loading ? '🔄' : '🔍'}
             </button>

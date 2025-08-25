@@ -144,7 +144,7 @@ const MangaDetailPage = () => {
           <p className="text-manga-text/70 mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="bg-manga-accent hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            className="bg-manga-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
           >
             Go Back
           </button>
@@ -160,9 +160,10 @@ const MangaDetailPage = () => {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <button
             onClick={handleBackNavigation}
-            className="text-manga-accent hover:text-manga-text transition-colors mb-4"
+            className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg text-xl font-medium"
+            aria-label="Go back"
           >
-            ← Back
+            ←
           </button>
         </div>
       </header>
@@ -202,7 +203,7 @@ const MangaDetailPage = () => {
                   <span className={`text-sm px-3 py-1 rounded-full ${
                     manga.status.toLowerCase() === 'completed' 
                       ? 'bg-green-900/30 text-green-400'
-                      : 'bg-blue-900/30 text-blue-400'
+                      : 'bg-manga-accent/20 text-manga-accent'
                   }`}>
                     {manga.status}
                   </span>
@@ -232,10 +233,10 @@ const MangaDetailPage = () => {
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
                   onClick={handleLibraryToggle}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-colors ${
+                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                     isInLibrary
                       ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-manga-accent hover:bg-blue-600 text-white'
+                      : 'bg-manga-accent hover:opacity-90 text-white'
                   }`}
                 >
                   {isInLibrary ? '❤️ Remove from Library' : '💝 Add to Library'}
@@ -243,7 +244,7 @@ const MangaDetailPage = () => {
                 {/* Start from Chapter 1 Button */}
                 {manga.chapters && manga.chapters.length > 0 && (
                   <button
-                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:bg-blue-600 transition-colors"
+                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-manga-accent text-white hover:opacity-90 transition-all duration-200"
                     onClick={() => handleChapterClick(manga.chapters[manga.chapters.length - 1])}
                   >
                     ▶️ Start from Chapter 1

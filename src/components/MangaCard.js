@@ -97,7 +97,7 @@ const MangaCard = ({ manga, onClick, showProgress = false }) => {
               manga.status.toLowerCase() === 'completed' 
                 ? 'bg-green-900/30 text-green-400'
                 : manga.status.toLowerCase() === 'ongoing'
-                ? 'bg-blue-900/30 text-blue-400'
+                ? 'bg-manga-accent/20 text-manga-accent'
                 : 'bg-gray-900/30 text-gray-400'
             }`}>
               {manga.status}

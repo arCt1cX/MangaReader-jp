@@ -71,7 +71,7 @@ const LibraryPage = () => {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="bg-manga-accent hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="bg-manga-accent hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
             >
               Browse Manga
             </button>
