@@ -16,6 +16,7 @@ const ReaderPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showUI, setShowUI] = useState(true);
+  const [contentFormat, setContentFormat] = useState(null); // 'manga' or 'manhwa'
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
@@ -100,6 +101,7 @@ const ReaderPage = () => {
       if (cachedData && cachedData.pages) {
         console.log('📦 Using cached chapter data');
         setPages(cachedData.pages);
+        setContentFormat(cachedData.format || 'manga'); // Set format from cache
         setLoading(false);
         return;
       }
@@ -110,6 +112,7 @@ const ReaderPage = () => {
       
       if (response.success) {
         setPages(response.data.pages);
+        setContentFormat(response.data.format || 'manga'); // Set format from API response
         // Cache the response for future use
         chapterCache.set(id, chapter, response.data);
       } else {
@@ -143,7 +146,10 @@ const ReaderPage = () => {
   }, []);
 
   const goToNextPage = useCallback(() => {
-    if (settings.readingMode === 'double') {
+    // Force scroll mode for manhwa content
+    const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
+    
+    if (effectiveReadingMode === 'double') {
       // In double page mode, advance by 2 pages unless at the end
       const nextPage = currentPage + 2;
       if (nextPage < pages.length) {
@@ -151,7 +157,7 @@ const ReaderPage = () => {
       } else if (currentPage + 1 < pages.length) {
         setCurrentPage(currentPage + 1);
       }
-    } else if (settings.readingMode === 'scroll') {
+    } else if (effectiveReadingMode === 'scroll') {
       // In scroll mode, scroll down instead of changing page
       window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
     } else {
@@ -160,10 +166,13 @@ const ReaderPage = () => {
         setCurrentPage(currentPage + 1);
       }
     }
-  }, [currentPage, pages.length, settings.readingMode]);
+  }, [currentPage, pages.length, settings.readingMode, contentFormat]);
 
   const goToPrevPage = useCallback(() => {
-    if (settings.readingMode === 'double') {
+    // Force scroll mode for manhwa content
+    const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
+    
+    if (effectiveReadingMode === 'double') {
       // In double page mode, go back by 2 pages unless at the beginning
       const prevPage = currentPage - 2;
       if (prevPage >= 0) {
@@ -171,7 +180,7 @@ const ReaderPage = () => {
       } else if (currentPage > 0) {
         setCurrentPage(0);
       }
-    } else if (settings.readingMode === 'scroll') {
+    } else if (effectiveReadingMode === 'scroll') {
       // In scroll mode, scroll up instead of changing page
       window.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
     } else {
@@ -180,10 +189,13 @@ const ReaderPage = () => {
         setCurrentPage(currentPage - 1);
       }
     }
-  }, [currentPage, settings.readingMode]);
+  }, [currentPage, settings.readingMode, contentFormat]);
 
   const handleImageClick = (e) => {
-    if (settings.readingMode === 'scroll') {
+    // Force scroll mode for manhwa content
+    const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
+    
+    if (effectiveReadingMode === 'scroll') {
       // In scroll mode, just toggle UI
       setShowUI(!showUI);
       return;
@@ -288,8 +300,8 @@ const ReaderPage = () => {
                 }
               </h1>
               <p className="text-sm text-white/70">
-                {settings.readingMode === 'scroll' 
-                  ? `${pages.length} pages (Continuous Scroll)`
+                {(contentFormat === 'manhwa' || settings.readingMode === 'scroll')
+                  ? `${pages.length} pages (${contentFormat === 'manhwa' ? 'Manhwa - ' : ''}Continuous Scroll)`
                   : settings.readingMode === 'double' && currentPage + 1 < pages.length
                     ? `Pages ${currentPage + 1}-${Math.min(currentPage + 2, pages.length)} of ${pages.length}`
                     : `Page ${currentPage + 1} of ${pages.length}`
@@ -318,9 +330,16 @@ const ReaderPage = () => {
 
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-screen p-4">
-        {settings.readingMode === 'scroll' ? (
-          // Continuous Scroll Mode
+        {(contentFormat === 'manhwa' || settings.readingMode === 'scroll') ? (
+          // Continuous Scroll Mode (forced for manhwa)
           <div className="max-w-4xl mx-auto">
+            {contentFormat === 'manhwa' && (
+              <div className="text-center mb-6 p-4 bg-blue-600/20 rounded-lg border border-blue-500/30">
+                <p className="text-blue-300 text-sm">
+                  📖 This is a manhwa (Korean webtoon) - optimized for vertical scrolling
+                </p>
+              </div>
+            )}
             {pages.map((page, index) => (
               <div 
                 key={index} 
@@ -393,7 +412,7 @@ const ReaderPage = () => {
       </div>
 
       {/* Next Chapter Button - Show at end of chapter */}
-      {(settings.readingMode === 'scroll' || 
+      {((contentFormat === 'manhwa' || settings.readingMode === 'scroll') || 
         (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
         (settings.readingMode === 'double' && currentPage >= pages.length - 2)
        ) && (
@@ -434,7 +453,7 @@ const ReaderPage = () => {
       )}
 
       {/* Bottom UI Bar */}
-      {showUI && settings.readingMode !== 'scroll' && (
+      {showUI && (contentFormat !== 'manhwa' && settings.readingMode !== 'scroll') && (
         <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur z-50 p-4">
           <div className="max-w-4xl mx-auto">
             {/* Progress Bar */}
@@ -491,7 +510,7 @@ const ReaderPage = () => {
       )}
 
       {/* Touch Areas for Mobile - only for non-scroll modes */}
-      {settings.readingMode !== 'scroll' && settings.navigation?.swipeEnabled && (
+      {(contentFormat !== 'manhwa' && settings.readingMode !== 'scroll') && settings.navigation?.swipeEnabled && (
         <div className="fixed inset-0 flex pointer-events-none">
           <div 
             className="pointer-events-auto"
