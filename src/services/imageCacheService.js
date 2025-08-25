@@ -56,21 +56,21 @@ class ImageCacheService {
         request.onsuccess = () => {
           const result = request.result;
           if (!result) {
-            console.log(`🖼️ Image cache MISS for ${imageUrl.slice(0, 50)}...`);
+            console.log(`🖼️ Image cache MISS for: ${imageUrl}`);
             resolve(null);
             return;
           }
 
           // Check if cache is expired
           if (Date.now() - result.timestamp > this.CACHE_DURATION) {
-            console.log(`🖼️ Image cache EXPIRED for ${imageUrl.slice(0, 50)}...`);
+            console.log(`🖼️ Image cache EXPIRED for: ${imageUrl}`);
             // Delete expired item
             this.delete(imageUrl);
             resolve(null);
             return;
           }
 
-          console.log(`🖼️ Image cache HIT for ${imageUrl.slice(0, 50)}...`);
+          console.log(`🖼️ Image cache HIT for: ${imageUrl}`);
           // Return blob URL
           const blobUrl = this.createBlobUrl(result.blob);
           resolve(blobUrl);

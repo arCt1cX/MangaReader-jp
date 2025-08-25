@@ -26,6 +26,8 @@ const CachedImage = ({
       try {
         setError(false);
 
+        console.log(`🔍 CachedImage: Checking cache for full URL: ${src}`);
+
         // Try to get from cache first
         const cachedUrl = await imageCache.get(src);
         
