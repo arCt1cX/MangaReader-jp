@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLibrary } from '../contexts/LibraryContext';
 import { DEFAULT_MANGA_SITES } from '../config/api';
 import apiService from '../services/apiService';
+import CachedImage from '../components/CachedImage';
+import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -40,26 +42,6 @@ const HomePage = () => {
         from: '/' // Pass home page as referrer
       }
     });
-  };
-
-  // Helper function to create absolute URL for cover images
-  const getAbsoluteCoverImageUrl = (coverImage) => {
-    if (!coverImage) return null;
-    
-    // If it's already an absolute URL, return as-is
-    if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
-      return coverImage;
-    }
-    
-    // If it's a relative API URL, make it absolute
-    if (coverImage.startsWith('/api/')) {
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://manga-reader-server-avc1.onrender.com'
-        : 'http://localhost:5000';
-      return `${API_BASE_URL}${coverImage}`;
-    }
-    
-    return coverImage;
   };
 
   return (
@@ -148,20 +130,24 @@ const HomePage = () => {
                 >
                   <div className="w-16 h-20 bg-manga-light rounded overflow-hidden flex-shrink-0">
                     {manga.coverImage ? (
-                      <img
-                        src={getAbsoluteCoverImageUrl(manga.coverImage)}
+                      <CachedImage
+                        src={manga.coverImage}
                         alt={manga.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           console.log('❌ Failed to load cover image:', manga.coverImage);
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
                         }}
+                        fallback={
+                          <div className="w-full h-full flex items-center justify-center text-2xl">
+                            <Icon name="book" size={24} />
+                          </div>
+                        }
                       />
-                    ) : null}
-                    <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: manga.coverImage ? 'none' : 'flex' }}>
-                      📚
-                    </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl">
+                        <Icon name="book" size={24} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-manga-text truncate">
