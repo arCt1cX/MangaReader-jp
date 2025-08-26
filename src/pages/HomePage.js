@@ -12,21 +12,6 @@ const HomePage = () => {
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
-  // Helper function to calculate next chapter to read or completion status
-  const getNextChapterToRead = (manga) => {
-    if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
-      // If no chapters read yet, next chapter is 1 (or 0 if manga starts at 0)
-      return manga.currentChapter ? manga.currentChapter + 1 : 1;
-    }
-    
-    // Sort chapters read and find the next unread chapter
-    const sortedChaptersRead = [...manga.chaptersRead].sort((a, b) => a - b);
-    
-    // Find the next chapter number after the highest read chapter
-    const highestReadChapter = Math.max(...sortedChaptersRead);
-    return highestReadChapter + 1;
-  };
-
   // Helper function to check if manga is completed (all available chapters read)
   const getMangaStatus = (manga) => {
     if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
