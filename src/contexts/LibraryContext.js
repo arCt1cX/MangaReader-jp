@@ -35,6 +35,7 @@ function libraryReducer(state, action) {
       const newState = { ...state };
       delete newState[action.payload];
       return newState;
+      
 
     case LIBRARY_ACTIONS.UPDATE_PROGRESS:
       const { mangaId, chapterNumber, pageNumber, totalPages } = action.payload;
