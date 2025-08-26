@@ -127,10 +127,36 @@ export function LibraryProvider({ children }) {
 
   // Action creators
   const addManga = (manga) => {
+    // Ensure cover image URL is absolute for better caching and display
+    const processedManga = {
+      ...manga,
+      coverImage: manga.coverImage ? makeAbsoluteUrl(manga.coverImage) : null
+    };
+    
     dispatch({
       type: LIBRARY_ACTIONS.ADD_MANGA,
-      payload: manga
+      payload: processedManga
     });
+  };
+
+  // Helper function to convert relative URLs to absolute URLs
+  const makeAbsoluteUrl = (url) => {
+    if (!url) return null;
+    
+    // If it's already an absolute URL, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If it's a relative API URL, make it absolute
+    if (url.startsWith('/api/')) {
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://manga-reader-server-avc1.onrender.com'
+        : 'http://localhost:5000';
+      return `${API_BASE_URL}${url}`;
+    }
+    
+    return url;
   };
 
   const removeManga = (mangaId) => {
