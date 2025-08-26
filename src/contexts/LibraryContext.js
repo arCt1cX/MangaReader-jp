@@ -133,6 +133,11 @@ export function LibraryProvider({ children }) {
       coverImage: manga.coverImage ? makeAbsoluteUrl(manga.coverImage) : null
     };
     
+    // Debug: Check if title is incorrectly set to site name
+    if (processedManga.title === 'manga-italia' || processedManga.title === 'Manga Italia') {
+      console.warn('⚠️ Detected manga title set to site name, this should not happen:', processedManga);
+    }
+    
     dispatch({
       type: LIBRARY_ACTIONS.ADD_MANGA,
       payload: processedManga
