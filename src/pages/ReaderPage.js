@@ -220,24 +220,30 @@ const ReaderPage = () => {
         return;
       }
 
-      // Simple check: if there's no next chapter, this is the last chapter
-      if (!nextChapter) {
-        // Get the current chapter number
-        let currentChapterNum;
-        if (chapterData?.number) {
-          currentChapterNum = parseFloat(chapterData.number);
-        } else if (chapterData?.id) {
-          currentChapterNum = parseFloat(chapterData.id);
-        } else {
-          // Fallback: find current chapter in manga chapters list
-          const currentChapter = mangaData?.chapters?.find(ch => 
-            ch.id === chapter || ch.number === chapter || 
-            ch.id === parseFloat(chapter) || ch.number === parseFloat(chapter)
-          );
-          currentChapterNum = parseFloat(currentChapter?.number || currentChapter?.id || chapter);
-        }
+      // Get the current chapter number
+      let currentChapterNum;
+      if (chapterData?.number) {
+        currentChapterNum = parseFloat(chapterData.number);
+      } else if (chapterData?.id) {
+        currentChapterNum = parseFloat(chapterData.id);
+      } else {
+        // Fallback: find current chapter in manga chapters list
+        const currentChapter = mangaData?.chapters?.find(ch => 
+          ch.id === chapter || ch.number === chapter || 
+          ch.id === parseFloat(chapter) || ch.number === parseFloat(chapter)
+        );
+        currentChapterNum = parseFloat(currentChapter?.number || currentChapter?.id || chapter);
+      }
 
-        console.log(`📖 Auto-marking last chapter ${currentChapterNum} as read (reached last page, no next chapter)`);
+      // More robust check for last chapter: 
+      // 1. Check if there's no nextChapter OR 
+      // 2. Check if current chapter is the highest numbered chapter
+      const isLastChapter = !nextChapter || 
+        (mangaData?.chapters && mangaData.chapters.length > 0 && 
+         currentChapterNum >= Math.max(...mangaData.chapters.map(ch => parseFloat(ch.number || ch.id || 0))));
+
+      if (isLastChapter) {
+        console.log(`📖 Auto-marking last chapter ${currentChapterNum} as read (reached last page, no next chapter available)`);
         markChapterRead(mangaData.id, currentChapterNum);
       }
     };
