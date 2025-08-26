@@ -1,4 +1,4 @@
-// API Configuration
+s// API Configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://manga-reader-server-avc1.onrender.com'  // Update this with your actual Render URL after deployment
   : 'http://localhost:5000';
@@ -26,13 +26,6 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://mangaworld.cx',
     color: '#ff6740',
     description: 'Italian manga site with latest releases'
-  },
-  {
-    id: 'manga-italia',
-    name: 'Manga Italia',
-    url: 'https://www.manga-italia.com',
-    color: '#2563eb',
-    description: 'Italian manga community with clean interface'
   }
 ];
 
