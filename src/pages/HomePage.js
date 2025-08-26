@@ -8,7 +8,7 @@ import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { getRecentlyRead, getNextUnreadChapter } = useLibrary();
+  const { getRecentlyRead } = useLibrary();
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
