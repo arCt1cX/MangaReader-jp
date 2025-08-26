@@ -90,9 +90,9 @@ const SearchPage = () => {
           {/* Back Button - Larger and Better Positioned */}
           <div className="flex items-center mb-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/')}
               className="flex items-center justify-center w-12 h-12 bg-manga-light text-manga-text hover:bg-manga-accent hover:text-white rounded-full transition-all duration-200 shadow-lg mr-4"
-              aria-label="Go back"
+              aria-label="Go back to home"
             >
               <Icon name="arrowLeft" size={20} />
             </button>

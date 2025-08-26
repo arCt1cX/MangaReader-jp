@@ -220,22 +220,8 @@ const ReaderPage = () => {
         return;
       }
 
-      // Check if there's no next chapter available (meaning this is the last chapter)
-      // Use multiple checks to ensure we catch all cases
-      const isLastChapter = !nextChapter || 
-        (mangaData?.chapters && mangaData.chapters.length > 0 && (
-          // Check if current chapter is the first in the chapters array (latest chapter)
-          mangaData.chapters[0].id === (chapterData.id || chapterData.number || chapter) ||
-          mangaData.chapters[0].number === (chapterData.number || chapterData.id || chapter) ||
-          // Check if this is numerically the highest chapter
-          (() => {
-            const currentNum = parseFloat(chapterData.number || chapterData.id || chapter);
-            const maxChapterNum = Math.max(...mangaData.chapters.map(ch => parseFloat(ch.number || ch.id)));
-            return !isNaN(currentNum) && !isNaN(maxChapterNum) && currentNum === maxChapterNum;
-          })()
-        ));
-
-      if (isLastChapter) {
+      // Simple check: if there's no next chapter, this is the last chapter
+      if (!nextChapter) {
         // Get the current chapter number
         let currentChapterNum;
         if (chapterData?.number) {
@@ -257,7 +243,7 @@ const ReaderPage = () => {
     };
 
     // Add a small delay to avoid marking as read immediately when landing on last page
-    const timer = setTimeout(markLastChapterRead, 500);
+    const timer = setTimeout(markLastChapterRead, 1000); // Increased delay to 1 second
     return () => clearTimeout(timer);
   }, [currentPage, pages.length, chapterData, mangaData, nextChapter, contentFormat, settings.readingMode, markChapterRead, isMangaInLibrary, chapter]);
 
