@@ -26,6 +26,13 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://mangaworld.cx',
     color: '#ff6740',
     description: 'Italian manga site with latest releases'
+  },
+  {
+    id: 'manga-italia',
+    name: 'Manga Italia',
+    url: 'https://www.manga-italia.com',
+    color: '#2563eb',
+    description: 'Italian manga community with clean interface'
   }
 ];
 
