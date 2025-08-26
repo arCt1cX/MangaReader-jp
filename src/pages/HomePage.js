@@ -18,30 +18,36 @@ const HomePage = () => {
       return { status: 'unread', nextChapter: manga.currentChapter ? manga.currentChapter + 1 : 1 };
     }
 
+    const highestReadChapter = Math.max(...manga.chaptersRead);
+    const nextChapter = highestReadChapter + 1;
+
     // If manga has chapters list (from manga details), we can check if all are read
     if (manga.chapters && Array.isArray(manga.chapters)) {
       const totalChapters = manga.chapters.length;
       const readChapters = manga.chaptersRead.length;
       
-      // Check if user has read all available chapters
-      if (readChapters >= totalChapters) {
+      // Find the highest chapter number in the available chapters
+      const highestAvailableChapter = Math.max(...manga.chapters.map(ch => 
+        parseFloat(ch.number || ch.id || 0)
+      ));
+      
+      // Check if user has read all available chapters OR read the highest available chapter
+      if (readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) {
         return { status: 'completed', message: 'Up to date' };
       }
     }
 
-    // Check if the current chapter is very recent (might indicate caught up with ongoing manga)
-    const highestReadChapter = Math.max(...manga.chaptersRead);
-    const nextChapter = highestReadChapter + 1;
-
-    // If this manga was read very recently and we're at a high chapter number,
-    // it might be an ongoing manga that user is caught up with
+    // Alternative check: if manga was recently read and has a high chapter count,
+    // check if it might be an ongoing manga that user is caught up with
     const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
     const isRecentlyRead = timeSinceLastRead < 7 * 24 * 60 * 60 * 1000; // Within 7 days
     
-    if (isRecentlyRead && highestReadChapter > 50) {
-      // For ongoing manga, check if user might be caught up
-      // This is a heuristic - if they've read 50+ chapters and read recently, likely caught up
-      return { status: 'ongoing', nextChapter, message: `Ch. ${nextChapter} (when available)` };
+    // If user has read many chapters recently, they might be caught up
+    if (isRecentlyRead && manga.chaptersRead.length >= 10) {
+      // For manga without complete chapter list, assume caught up if recent and many chapters read
+      if (!manga.chapters || manga.chapters.length === 0) {
+        return { status: 'completed', message: 'Up to date' };
+      }
     }
 
     return { status: 'reading', nextChapter };
