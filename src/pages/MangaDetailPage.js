@@ -143,26 +143,6 @@ const MangaDetailPage = () => {
     return readChapters.length >= manga.chapters.length || highestRead >= highestAvailable;
   };
 
-  // Helper function to check if manga is completed (all available chapters read)
-  function getMangaStatus(manga) {
-    if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
-      return { status: 'unread', nextChapter: manga.currentChapter ? manga.currentChapter + 1 : 1 };
-    }
-
-    const highestReadChapter = Math.max(...manga.chaptersRead);
-    const nextChapter = highestReadChapter + 1;
-
-    if (manga.chapters && Array.isArray(manga.chapters)) {
-      const totalChapters = manga.chapters.length;
-      const readChapters = manga.chaptersRead.length;
-      const highestAvailableChapter = Math.max(...manga.chapters.map(ch => parseFloat(ch.number || ch.id || 0)));
-      if (readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) {
-        return { status: 'completed', message: 'Up to date' };
-      }
-    }
-
-    return { status: 'reading', nextChapter };
-  }
 
   if (loading) {
     return (
