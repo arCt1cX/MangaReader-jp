@@ -130,7 +130,11 @@ export function LibraryProvider({ children }) {
     // Ensure cover image URL is absolute for better caching and display
     const processedManga = {
       ...manga,
-      coverImage: manga.coverImage ? makeAbsoluteUrl(manga.coverImage) : null
+      coverImage: manga.coverImage ? makeAbsoluteUrl(manga.coverImage) : null,
+      // Fix title for manga-italia if it's showing the site name instead of actual title
+      title: manga.title === 'manga-italia' && manga.id 
+        ? manga.id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) 
+        : manga.title
     };
     
     dispatch({
