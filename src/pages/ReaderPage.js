@@ -187,6 +187,57 @@ const ReaderPage = () => {
     return () => clearInterval(cleanup);
   }, []);
 
+  // Auto-mark last chapter as read when reaching the last page
+  useEffect(() => {
+    const markLastChapterRead = async () => {
+      // Only proceed if we have all necessary data and user is in library
+      if (!pages.length || !chapterData || !mangaData || !isMangaInLibrary(mangaData.id)) {
+        return;
+      }
+
+      // Check if user is on the last page (or second-to-last page in double mode)
+      const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
+      const isOnLastPage = effectiveReadingMode === 'double' 
+        ? currentPage >= pages.length - 2 // In double mode, consider last 2 pages as "last page"
+        : currentPage === pages.length - 1;
+
+      if (!isOnLastPage) {
+        return;
+      }
+
+      try {
+        // Get manga info to check if this is the last chapter
+        const mangaInfo = await apiService.getMangaInfo(mangaData.id, site);
+        if (!mangaInfo.success || !mangaInfo.data.chapters) {
+          return;
+        }
+
+        // Sort chapters by number to find the actual last chapter
+        const sortedChapters = [...mangaInfo.data.chapters].sort((a, b) => {
+          const aNum = parseFloat(a.number || a.id);
+          const bNum = parseFloat(b.number || b.id);
+          return bNum - aNum; // Descending order, so first is latest
+        });
+
+        const lastChapter = sortedChapters[0];
+        const currentChapterNumber = parseFloat(chapterData.number || chapterData.id || chapter);
+        const lastChapterNumber = parseFloat(lastChapter.number || lastChapter.id);
+
+        // If this is the last chapter, mark it as read
+        if (currentChapterNumber === lastChapterNumber) {
+          console.log(`📖 Auto-marking last chapter ${currentChapterNumber} as read (reached last page)`);
+          markChapterRead(mangaData.id, currentChapterNumber);
+        }
+      } catch (error) {
+        console.error('Error checking if last chapter:', error);
+      }
+    };
+
+    // Add a small delay to avoid marking as read immediately when landing on last page
+    const timer = setTimeout(markLastChapterRead, 500);
+    return () => clearTimeout(timer);
+  }, [currentPage, pages.length, chapterData, mangaData, site, contentFormat, settings.readingMode, markChapterRead, isMangaInLibrary, chapter]);
+
   const goToNextPage = useCallback(() => {
     // Force scroll mode for manhwa content
     const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
