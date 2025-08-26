@@ -8,9 +8,24 @@ import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { getRecentlyRead } = useLibrary();
+  const { getRecentlyRead, getNextUnreadChapter } = useLibrary();
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
+
+  // Helper function to calculate next chapter to read
+  const getNextChapterToRead = (manga) => {
+    if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
+      // If no chapters read yet, next chapter is 1 (or 0 if manga starts at 0)
+      return manga.currentChapter ? manga.currentChapter + 1 : 1;
+    }
+    
+    // Sort chapters read and find the next unread chapter
+    const sortedChaptersRead = [...manga.chaptersRead].sort((a, b) => a - b);
+    
+    // Find the next chapter number after the highest read chapter
+    const highestReadChapter = Math.max(...sortedChaptersRead);
+    return highestReadChapter + 1;
+  };
 
   useEffect(() => {
     // Check backend status
@@ -154,7 +169,7 @@ const HomePage = () => {
                       {manga.title}
                     </h3>
                     <p className="text-sm text-manga-text/70 truncate">
-                      Chapter {manga.currentChapter || 1}
+                      Next: Chapter {getNextChapterToRead(manga)}
                       {manga.currentPage && ` • Page ${manga.currentPage}`}
                     </p>
                     <p className="text-xs text-manga-text/50 mt-1">
