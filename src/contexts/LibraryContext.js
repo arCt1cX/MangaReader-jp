@@ -187,6 +187,28 @@ export function LibraryProvider({ children }) {
     });
   };
 
+  const markPreviousChaptersRead = (mangaId, currentChapterNumber, allChapters) => {
+    if (!isMangaInLibrary(mangaId) || !allChapters || allChapters.length === 0) {
+      return;
+    }
+
+    const currentChapterNum = parseFloat(currentChapterNumber);
+    console.log(`📚 Marking all chapters before ${currentChapterNum} as read for manga ${mangaId}`);
+
+    // Find all chapters with numbers less than the current chapter
+    const previousChapters = allChapters
+      .map(ch => parseFloat(ch.number || ch.id))
+      .filter(chNum => !isNaN(chNum) && chNum < currentChapterNum)
+      .sort((a, b) => a - b); // Sort ascending
+
+    // Mark each previous chapter as read
+    previousChapters.forEach(chapterNum => {
+      markChapterRead(mangaId, chapterNum);
+    });
+
+    console.log(`📖 Marked ${previousChapters.length} previous chapters as read:`, previousChapters);
+  };
+
   const clearLibrary = () => {
     dispatch({
       type: LIBRARY_ACTIONS.CLEAR_LIBRARY
@@ -257,6 +279,7 @@ export function LibraryProvider({ children }) {
     updateProgress,
     updateLastRead,
     markChapterRead,
+    markPreviousChaptersRead,
     clearLibrary,
     isMangaInLibrary,
     getMangaProgress,
