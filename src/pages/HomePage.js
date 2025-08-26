@@ -15,7 +15,7 @@ const HomePage = () => {
     checkBackendStatus();
     
     // Load recent manga
-    const recent = getRecentlyRead(3);
+    const recent = getRecentlyRead(5);
     setRecentManga(recent);
   }, [getRecentlyRead]);
 
@@ -40,6 +40,26 @@ const HomePage = () => {
         from: '/' // Pass home page as referrer
       }
     });
+  };
+
+  // Helper function to create absolute URL for cover images
+  const getAbsoluteCoverImageUrl = (coverImage) => {
+    if (!coverImage) return null;
+    
+    // If it's already an absolute URL, return as-is
+    if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
+      return coverImage;
+    }
+    
+    // If it's a relative API URL, make it absolute
+    if (coverImage.startsWith('/api/')) {
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://manga-reader-server-avc1.onrender.com'
+        : 'http://localhost:5000';
+      return `${API_BASE_URL}${coverImage}`;
+    }
+    
+    return coverImage;
   };
 
   return (
@@ -78,51 +98,6 @@ const HomePage = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 space-y-8">
-        {/* Recent Manga */}
-        {recentManga.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold text-manga-text mb-4">
-              📖 Continue Reading
-            </h2>
-            <div className="grid gap-4">
-              {recentManga.map((manga) => (
-                <div
-                  key={manga.id}
-                  onClick={() => handleRecentMangaClick(manga)}
-                  className="bg-manga-gray rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-manga-light transition-colors touch-improvement"
-                >
-                  <div className="w-16 h-20 bg-manga-light rounded overflow-hidden flex-shrink-0">
-                    {manga.coverImage ? (
-                      <img
-                        src={manga.coverImage}
-                        alt={manga.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">
-                        📚
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-manga-text truncate">
-                      {manga.title}
-                    </h3>
-                    <p className="text-sm text-manga-text/70 truncate">
-                      Chapter {manga.currentChapter || 1}
-                      {manga.currentPage && ` • Page ${manga.currentPage}`}
-                    </p>
-                    <p className="text-xs text-manga-text/50 mt-1">
-                      {new Date(manga.lastRead).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-manga-accent">→</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Manga Sites */}
         <section>
           <h2 className="text-xl font-semibold text-manga-text mb-4">
@@ -157,6 +132,55 @@ const HomePage = () => {
             ))}
           </div>
         </section>
+
+        {/* Recent Manga */}
+        {recentManga.length > 0 && (
+          <section>
+            <h2 className="text-xl font-semibold text-manga-text mb-4">
+              📖 Continue Reading
+            </h2>
+            <div className="grid gap-4">
+              {recentManga.map((manga) => (
+                <div
+                  key={manga.id}
+                  onClick={() => handleRecentMangaClick(manga)}
+                  className="bg-manga-gray rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-manga-light transition-colors touch-improvement"
+                >
+                  <div className="w-16 h-20 bg-manga-light rounded overflow-hidden flex-shrink-0">
+                    {manga.coverImage ? (
+                      <img
+                        src={getAbsoluteCoverImageUrl(manga.coverImage)}
+                        alt={manga.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('❌ Failed to load cover image:', manga.coverImage);
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className="w-full h-full flex items-center justify-center text-2xl" style={{ display: manga.coverImage ? 'none' : 'flex' }}>
+                      📚
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-manga-text truncate">
+                      {manga.title}
+                    </h3>
+                    <p className="text-sm text-manga-text/70 truncate">
+                      Chapter {manga.currentChapter || 1}
+                      {manga.currentPage && ` • Page ${manga.currentPage}`}
+                    </p>
+                    <p className="text-xs text-manga-text/50 mt-1">
+                      {new Date(manga.lastRead).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-manga-accent">→</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Quick Actions */}
         <section>
