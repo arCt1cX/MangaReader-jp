@@ -43,6 +43,7 @@ const CachedImage = ({
         console.log(`🖼️ Downloading and caching image: ${src.slice(0, 50)}...`);
         const newCachedUrl = await imageCache.cacheImage(src);
         
+        
         if (newCachedUrl && isMounted) {
           setImageSrc(newCachedUrl);
           blobUrlToCleanup = newCachedUrl;
