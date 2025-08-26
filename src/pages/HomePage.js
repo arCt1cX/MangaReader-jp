@@ -12,7 +12,7 @@ const HomePage = () => {
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
-  // Helper function to calculate next chapter to read
+  // Helper function to calculate next chapter to read or completion status
   const getNextChapterToRead = (manga) => {
     if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
       // If no chapters read yet, next chapter is 1 (or 0 if manga starts at 0)
@@ -25,6 +25,41 @@ const HomePage = () => {
     // Find the next chapter number after the highest read chapter
     const highestReadChapter = Math.max(...sortedChaptersRead);
     return highestReadChapter + 1;
+  };
+
+  // Helper function to check if manga is completed (all available chapters read)
+  const getMangaStatus = (manga) => {
+    if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
+      return { status: 'unread', nextChapter: manga.currentChapter ? manga.currentChapter + 1 : 1 };
+    }
+
+    // If manga has chapters list (from manga details), we can check if all are read
+    if (manga.chapters && Array.isArray(manga.chapters)) {
+      const totalChapters = manga.chapters.length;
+      const readChapters = manga.chaptersRead.length;
+      
+      // Check if user has read all available chapters
+      if (readChapters >= totalChapters) {
+        return { status: 'completed', message: 'Up to date' };
+      }
+    }
+
+    // Check if the current chapter is very recent (might indicate caught up with ongoing manga)
+    const highestReadChapter = Math.max(...manga.chaptersRead);
+    const nextChapter = highestReadChapter + 1;
+
+    // If this manga was read very recently and we're at a high chapter number,
+    // it might be an ongoing manga that user is caught up with
+    const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
+    const isRecentlyRead = timeSinceLastRead < 7 * 24 * 60 * 60 * 1000; // Within 7 days
+    
+    if (isRecentlyRead && highestReadChapter > 50) {
+      // For ongoing manga, check if user might be caught up
+      // This is a heuristic - if they've read 50+ chapters and read recently, likely caught up
+      return { status: 'ongoing', nextChapter, message: `Ch. ${nextChapter} (when available)` };
+    }
+
+    return { status: 'reading', nextChapter };
   };
 
   useEffect(() => {
@@ -169,7 +204,16 @@ const HomePage = () => {
                       {manga.title}
                     </h3>
                     <p className="text-sm text-manga-text/70 truncate">
-                      Next: Chapter {getNextChapterToRead(manga)}
+                      {(() => {
+                        const status = getMangaStatus(manga);
+                        if (status.status === 'completed') {
+                          return `✅ ${status.message}`;
+                        } else if (status.status === 'ongoing') {
+                          return `📖 ${status.message}`;
+                        } else {
+                          return `Next: Chapter ${status.nextChapter}`;
+                        }
+                      })()}
                       {manga.currentPage && ` • Page ${manga.currentPage}`}
                     </p>
                     <p className="text-xs text-manga-text/50 mt-1">
