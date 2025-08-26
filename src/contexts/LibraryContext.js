@@ -10,7 +10,9 @@ const LIBRARY_ACTIONS = {
   UPDATE_PROGRESS: 'UPDATE_PROGRESS',
   UPDATE_LAST_READ: 'UPDATE_LAST_READ',
   MARK_CHAPTER_READ: 'MARK_CHAPTER_READ',
-  CLEAR_LIBRARY: 'CLEAR_LIBRARY'
+  CLEAR_LIBRARY: 'CLEAR_LIBRARY',
+  ADD_TO_CURRENTLY_READING: 'ADD_TO_CURRENTLY_READING',
+  REMOVE_FROM_CURRENTLY_READING: 'REMOVE_FROM_CURRENTLY_READING'
 };
 
 // Reducer
@@ -88,6 +90,24 @@ function libraryReducer(state, action) {
       
       console.log(`📚 Updated chapters read for ${readMangaId}:`, updatedLibraryState[readMangaId].chaptersRead);
       return updatedLibraryState;
+
+    case LIBRARY_ACTIONS.ADD_TO_CURRENTLY_READING:
+      return {
+        ...state,
+        [action.payload]: {
+          ...state[action.payload],
+          isCurrentlyReading: true
+        }
+      };
+
+    case LIBRARY_ACTIONS.REMOVE_FROM_CURRENTLY_READING:
+      return {
+        ...state,
+        [action.payload]: {
+          ...state[action.payload],
+          isCurrentlyReading: false
+        }
+      };
 
     case LIBRARY_ACTIONS.CLEAR_LIBRARY:
       return {};
@@ -272,6 +292,28 @@ export function LibraryProvider({ children }) {
     return sortedChapters[sortedChapters.length - 1];
   };
 
+  const addToCurrentlyReading = (mangaId) => {
+    dispatch({
+      type: LIBRARY_ACTIONS.ADD_TO_CURRENTLY_READING,
+      payload: mangaId
+    });
+  };
+
+  const removeFromCurrentlyReading = (mangaId) => {
+    dispatch({
+      type: LIBRARY_ACTIONS.REMOVE_FROM_CURRENTLY_READING,
+      payload: mangaId
+    });
+  };
+
+  const getCurrentlyReading = () => {
+    return Object.values(library).filter(manga => manga.isCurrentlyReading);
+  };
+
+  const isCurrentlyReading = (mangaId) => {
+    return library[mangaId]?.isCurrentlyReading || false;
+  };
+
   const value = {
     library,
     addManga,
@@ -286,7 +328,11 @@ export function LibraryProvider({ children }) {
     getLibraryArray,
     getRecentlyRead,
     isChapterRead,
-    getNextUnreadChapter
+    getNextUnreadChapter,
+    addToCurrentlyReading,
+    removeFromCurrentlyReading,
+    getCurrentlyReading,
+    isCurrentlyReading
   };
 
   return (

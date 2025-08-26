@@ -10,7 +10,7 @@ const MangaDetailPage = () => {
   const { site, id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { addManga, removeManga, isMangaInLibrary, isChapterRead, getNextUnreadChapter } = useLibrary();
+  const { addManga, removeManga, isMangaInLibrary, isChapterRead, getNextUnreadChapter, addToCurrentlyReading, removeFromCurrentlyReading, isCurrentlyReading } = useLibrary();
   
   const [manga, setManga] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,7 @@ const MangaDetailPage = () => {
   const referrerPath = location.state?.from;
 
   const isInLibrary = manga ? isMangaInLibrary(manga.id) : false;
+  const isCurrentlyReadingManga = manga ? isCurrentlyReading(manga.id) : false;
 
   const loadMangaDetails = useCallback(async () => {
     try {
@@ -82,6 +83,14 @@ const MangaDetailPage = () => {
     }
   };
 
+  const handleCurrentlyReadingToggle = () => {
+    if (isCurrentlyReadingManga) {
+      removeFromCurrentlyReading(manga.id);
+    } else {
+      addToCurrentlyReading(manga.id);
+    }
+  };
+
   const handleBackNavigation = () => {
     console.log('🔙 Back button clicked - referrerPath:', referrerPath);
     console.log('🔙 location.state:', location.state);
@@ -122,6 +131,37 @@ const MangaDetailPage = () => {
       }
     });
   };
+
+  // Helper: check if all chapters are read
+  const areAllChaptersRead = () => {
+    if (!manga || !manga.chapters || !isInLibrary) return false;
+    const readChapters = manga.chapters.filter(ch => isChapterRead(manga.id, parseFloat(ch.number || ch.id)));
+    // Use robust logic: compare highest read chapter to highest available
+    const highestRead = Math.max(...(manga.chapters.map(ch => isChapterRead(manga.id, parseFloat(ch.number || ch.id)) ? parseFloat(ch.number || ch.id) : 0)));
+    const highestAvailable = Math.max(...manga.chapters.map(ch => parseFloat(ch.number || ch.id)));
+    return readChapters.length >= manga.chapters.length || highestRead >= highestAvailable;
+  };
+
+  // Helper function to check if manga is completed (all available chapters read)
+  function getMangaStatus(manga) {
+    if (!manga.chaptersRead || manga.chaptersRead.length === 0) {
+      return { status: 'unread', nextChapter: manga.currentChapter ? manga.currentChapter + 1 : 1 };
+    }
+
+    const highestReadChapter = Math.max(...manga.chaptersRead);
+    const nextChapter = highestReadChapter + 1;
+
+    if (manga.chapters && Array.isArray(manga.chapters)) {
+      const totalChapters = manga.chapters.length;
+      const readChapters = manga.chaptersRead.length;
+      const highestAvailableChapter = Math.max(...manga.chapters.map(ch => parseFloat(ch.number || ch.id || 0)));
+      if (readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) {
+        return { status: 'completed', message: 'Up to date' };
+      }
+    }
+
+    return { status: 'reading', nextChapter };
+  }
 
   if (loading) {
     return (
@@ -243,8 +283,37 @@ const MangaDetailPage = () => {
                   <Icon name={isInLibrary ? "heartFilled" : "heart"} size={16} />
                   {isInLibrary ? 'Remove from Library' : 'Add to Library'}
                 </button>
+                
+                {/* Currently Reading Button - Only show if manga is in library */}
+                {isInLibrary && (
+                  <button
+                    onClick={handleCurrentlyReadingToggle}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 justify-center ${
+                      isCurrentlyReadingManga
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                        : 'bg-manga-light hover:bg-manga-light/80 text-manga-text'
+                    }`}
+                  >
+                    <Icon name={isCurrentlyReadingManga ? "bookOpen" : "book"} size={16} />
+                    {isCurrentlyReadingManga ? 'Remove from Currently Reading' : 'Add to Currently Reading'}
+                  </button>
+                )}
+                
                 {/* Continue Reading / Start from Chapter 1 Button */}
                 {manga.chapters && manga.chapters.length > 0 && (() => {
+                  // If all chapters are read, show Up to date
+                  if (areAllChaptersRead()) {
+                    return (
+                      <button
+                        className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium bg-green-700 text-white cursor-default flex items-center gap-2 justify-center"
+                        disabled
+                      >
+                        <Icon name="check" size={16} />
+                        Up to date
+                      </button>
+                    );
+                  }
+
                   // For non-library manga, start from first chapter (lowest number)
                   if (!isInLibrary) {
                     const firstChapter = [...manga.chapters].sort((a, b) => {
@@ -332,29 +401,38 @@ const MangaDetailPage = () => {
                           Chapter {chapter.number}
                           {chapter.title && ` - ${chapter.title}`}
                         </h4>
+                        
                         {isRead && (
                           <Icon name="check" size={16} color="var(--accent)" />
                         )}
                       </div>
-                      {chapter.publishedAt && (
-                        <p className="text-sm text-manga-text/70">
-                          {new Date(chapter.publishedAt).toLocaleDateString()}
-                        </p>
-                      )}
+                      
+                      <p className="text-sm text-manga-text/70">
+                        {chapter.publishedAt && (
+                          new Date(chapter.publishedAt).toLocaleDateString()
+                        )}
+                      </p>
                     </div>
-                    <div className={`${isRead ? 'text-manga-accent' : 'text-manga-accent'}`}>
-                      <Icon name="arrowRight" size={16} />
-                    </div>
+                    
+                    <Icon name="arrowRight" size={16} />
                   </div>
                 );
-              })}
-            </div>
-          ) : (
-            <p className="text-manga-text/70 text-center py-8">
-              No chapters available
-            </p>
-          )}
-        </div>
+              })}};  );    </div>      </div>        </div>          )}            </p>              No chapters available            <p className="text-manga-text/70 text-center py-8">          ) : (            </div>              })}                );                  </div>                    </div>                      <Icon name="arrowRight" size={16} />                    <div className={`${isRead ? 'text-manga-accent' : 'text-manga-accent'}`}>                    </div>                      )}                        </p>                          {new Date(chapter.publishedAt).toLocaleDateString()}                        <p className="text-sm text-manga-text/70">                      {chapter.publishedAt && (                      </div>                        )}                          <Icon name="check" size={16} color="var(--accent)" />                        {isRead && (                        </h4>            </p>
+            </div>          )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+export default MangaDetailPage;};  );    </div>      </div>        </div>          )}            </p>              No chapters available            <p className="text-manga-text/70 text-center py-8">          ) : (        </div>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { getRecentlyRead } = useLibrary();
+  const { getRecentlyRead, library } = useLibrary();
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
@@ -60,7 +60,7 @@ const HomePage = () => {
     // Load recent manga
     const recent = getRecentlyRead(5);
     setRecentManga(recent);
-  }, [getRecentlyRead]);
+  }, [getRecentlyRead, library]); // Add library as dependency so it updates when chapters are marked
 
   const checkBackendStatus = async () => {
     try {
