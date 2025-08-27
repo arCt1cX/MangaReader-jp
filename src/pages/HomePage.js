@@ -126,12 +126,12 @@ const HomePage = () => {
           <h2 className="text-xl font-semibold text-manga-text mb-4">
             🌐 Browse Manga Sites
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-row gap-4 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-manga-accent/40 scrollbar-track-manga-gray/30 py-2">
             {DEFAULT_MANGA_SITES.map((site) => (
               <div
                 key={site.id}
                 onClick={() => handleSiteClick(site)}
-                className="bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-colors touch-improvement group"
+                className="min-w-[220px] bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-colors touch-improvement group flex-shrink-0"
               >
                 <div 
                   className="w-4 h-4 rounded-full mb-3"
