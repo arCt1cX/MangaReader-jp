@@ -96,6 +96,11 @@ const ReaderPage = () => {
         }
         
         markChapterRead(mangaId, currentChapterNum);
+
+        // Mark all previous chapters as read when marking this one as read
+        if (mangaData.chapters && mangaData.chapters.length > 1) {
+          markPreviousChaptersRead(mangaId, currentChapterNum, mangaData.chapters);
+        }
       }
       
       // Explicitly reset to first page before navigation
@@ -167,20 +172,6 @@ const ReaderPage = () => {
     loadChapterPages();
   }, [loadChapterPages]);
 
-  // Auto-mark previous chapters as read when starting a new chapter
-  // This helps users who read manga elsewhere and want to continue from a specific chapter
-  useEffect(() => {
-    if (!pages.length || !chapterData || !mangaData || !isMangaInLibrary(mangaData.id)) {
-      return;
-    }
-
-    // Only run this once when the chapter fully loads
-    const currentChapterNumber = parseFloat(chapterData.number || chapterData.id || chapter);
-    if (!isNaN(currentChapterNumber) && mangaData.chapters && mangaData.chapters.length > 1) {
-      // Mark all previous chapters as read to help with "continue reading" functionality
-      markPreviousChaptersRead(mangaData.id, currentChapterNumber, mangaData.chapters);
-    }
-  }, [pages.length, chapterData, mangaData, markPreviousChaptersRead, isMangaInLibrary, chapter]);
 
   useEffect(() => {
     // Auto-hide UI after 3 seconds
@@ -225,6 +216,9 @@ const ReaderPage = () => {
       if (currentChapterNum >= maxChapterNum) {
         // This is the last chapter - mark it as read immediately
         markChapterRead(mangaData.id, currentChapterNum);
+
+        // Mark all previous chapters as read as well
+        markPreviousChaptersRead(mangaData.id, currentChapterNum, mangaData.chapters);
       }
     }
   }, [chapterData, mangaData, markChapterRead, isMangaInLibrary, chapter]);
