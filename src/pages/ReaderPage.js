@@ -221,7 +221,7 @@ const ReaderPage = () => {
         markPreviousChaptersRead(mangaData.id, currentChapterNum, mangaData.chapters);
       }
     }
-  }, [chapterData, mangaData, markChapterRead, isMangaInLibrary, chapter]);
+  }, [chapterData, mangaData, markChapterRead, markPreviousChaptersRead, isMangaInLibrary, chapter]);
 
   const goToNextPage = useCallback(() => {
     // Force scroll mode for manhwa content
