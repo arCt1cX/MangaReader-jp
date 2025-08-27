@@ -33,6 +33,13 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://www.manga-italia.com',
     color: '#009639',
     description: 'Italian manga community site'
+  },
+  {
+    id: 'mangakatana',
+    name: 'MangaKatana',
+    url: 'https://mangakatana.com',
+    color: '#3b82f6',
+    description: 'English manga site with a large catalog'
   }
 ];
 
