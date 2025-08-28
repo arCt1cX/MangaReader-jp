@@ -133,19 +133,12 @@ const HomePage = () => {
                 onClick={() => handleSiteClick(site)}
                 className="min-w-[220px] bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-colors touch-improvement group flex-shrink-0"
               >
-                {site.logo ? (
-                  <img
-                    src={site.logo}
-                    alt={site.name + ' logo'}
-                    className="w-7 h-7 mb-3 rounded shadow-sm bg-white object-contain"
-                    style={{ display: 'block' }}
-                  />
-                ) : (
-                  <div 
-                    className="w-4 h-4 rounded-full mb-3"
-                    style={{ backgroundColor: site.color }}
-                  ></div>
-                )}
+                <img
+                  src={site.logo}
+                  alt={site.name + ' logo'}
+                  className="w-8 h-8 mb-3 rounded"
+                  style={{ objectFit: 'contain', background: '#fff' }}
+                />
                 <h3 className="font-semibold text-manga-text group-hover:text-manga-accent transition-colors">
                   {site.name}
                 </h3>
