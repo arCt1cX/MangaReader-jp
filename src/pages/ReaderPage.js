@@ -138,7 +138,18 @@ const ReaderPage = () => {
       setCurrentPage(0);
       
       // Use chapter URL from navigation state if available, otherwise fall back to chapter ID
-      const chapterIdentifier = chapterUrl || chapter;
+      let chapterIdentifier = chapterUrl || chapter;
+      
+      // If chapterIdentifier is a full URL, extract just the chapter ID part
+      if (chapterIdentifier && chapterIdentifier.startsWith('http')) {
+        // For MangaKatana URLs like "https://mangakatana.com/manga/naruto.1205/c1"
+        // Extract "naruto.1205/c1"
+        const urlMatch = chapterIdentifier.match(/\/manga\/(.+)/);
+        if (urlMatch) {
+          chapterIdentifier = urlMatch[1];
+          console.log(`Extracted chapter ID from URL: ${chapterIdentifier}`);
+        }
+      }
       
       // Check cache first
       const cachedData = chapterCache.get(id, chapter);
