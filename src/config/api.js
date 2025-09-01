@@ -26,7 +26,7 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://mangaworld.cx',
     color: '#ff6740',
     description: 'Italian manga site with latest releases',
-  logo: '/MangaReader-jp/mangaworld-favicon-32x32.png'
+    logo: '/MangaReader-jp/mangaworld-favicon-32x32.png'
   },
   {
     id: 'manga-italia',
@@ -34,7 +34,15 @@ export const DEFAULT_MANGA_SITES = [
     url: 'https://www.manga-italia.com',
     color: '#009639',
     description: 'Italian manga community site',
-  logo: '/MangaReader-jp/manga-italia-favicon.png'
+    logo: '/MangaReader-jp/manga-italia-favicon.png'
+  },
+  {
+    id: 'mangakatana',
+    name: 'MangaKatana',
+    url: 'https://mangakatana.com',
+    color: '#ff4757',
+    description: 'Global manga site with extensive collection',
+    logo: '/MangaReader-jp/mangakatana-favicon.png'
   }
 ];
 
