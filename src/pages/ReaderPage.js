@@ -131,7 +131,6 @@ const ReaderPage = () => {
 
   const loadChapterPages = useCallback(async () => {
     try {
-      console.log('🚀 Loading chapter pages...', { site, id, chapter, chapterUrl });
       setLoading(true);
       setError(null);
       
@@ -140,12 +139,10 @@ const ReaderPage = () => {
       
       // Use chapter URL from navigation state if available, otherwise fall back to chapter ID
       const chapterIdentifier = chapterUrl || chapter;
-      console.log('📖 Chapter identifier:', chapterIdentifier);
       
       // Check cache first
       const cachedData = chapterCache.get(id, chapter);
       if (cachedData && cachedData.pages) {
-        console.log('💾 Found cached data:', cachedData);
         setPages(cachedData.pages);
         setContentFormat(cachedData.format || 'manga'); // Set format from cache
         setLoading(false);
@@ -153,25 +150,20 @@ const ReaderPage = () => {
       }
       
       // Not in cache, fetch from API
-      console.log('🌐 Fetching from API...');
       const response = await apiService.getChapterImages(chapterIdentifier, site);
-      console.log('📡 API response:', response);
       
       if (response.success) {
-        console.log('✅ Success! Pages:', response.data.pages?.length || 0);
         setPages(response.data.pages);
         setContentFormat(response.data.format || 'manga'); // Set format from API response
         // Cache the response for future use
         chapterCache.set(id, chapter, response.data);
       } else {
-        console.error('❌ API returned error:', response.error);
         setError(response.error || 'Failed to load chapter pages');
       }
     } catch (err) {
-      console.error('💥 Error loading chapter pages:', err);
+      console.error('Error loading chapter pages:', err);
       setError('Failed to load chapter pages');
     } finally {
-      console.log('🏁 Loading finished');
       setLoading(false);
     }
   }, [site, id, chapter, chapterUrl]);

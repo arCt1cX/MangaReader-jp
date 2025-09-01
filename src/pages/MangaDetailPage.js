@@ -123,7 +123,11 @@ const MangaDetailPage = () => {
 
   const handleChapterClick = (chapter) => {
     // Pass chapter info through navigation state to avoid URL encoding issues
-    navigate(`/reader/${site}/${encodeURIComponent(id)}/${chapter.id || chapter.number}`, {
+    const chapterIdentifier = chapter.id || chapter.number;
+    // Encode the chapter identifier to handle special characters like forward slashes
+    const encodedChapter = encodeURIComponent(chapterIdentifier);
+    
+    navigate(`/reader/${site}/${encodeURIComponent(id)}/${encodedChapter}`, {
       state: { 
         chapterUrl: chapter.url,
         chapterData: chapter,
