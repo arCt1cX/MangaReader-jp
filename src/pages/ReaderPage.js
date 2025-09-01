@@ -13,6 +13,13 @@ const ReaderPage = () => {
   const { settings } = useSettings();
   const { markChapterRead, markPreviousChaptersRead, isMangaInLibrary } = useLibrary();
   
+  // Temporary test to see if component mounts
+  React.useEffect(() => {
+    if (site === 'mangakatana') {
+      alert('ReaderPage mounted for MangaKatana! Chapter: ' + chapter);
+    }
+  }, []);
+  
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
