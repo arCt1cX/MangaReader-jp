@@ -106,7 +106,7 @@ const ReaderPage = () => {
       // Explicitly reset to first page before navigation
       setCurrentPage(0);
       
-      navigate(`/reader/${site}/${encodeURIComponent(mangaId)}/${nextChapter.id || nextChapter.number}`, {
+      navigate(`/reader/${site}/${encodeURIComponent(mangaId)}/${encodeURIComponent(nextChapter.id || nextChapter.number)}`, {
         state: { 
           chapterUrl: nextChapter.url,
           chapterData: nextChapter,
