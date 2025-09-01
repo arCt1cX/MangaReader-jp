@@ -438,7 +438,17 @@ const ReaderPage = () => {
                   crossOrigin="anonymous"
                   style={getImageStyles()}
                   onError={(e) => {
-                    e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${index + 1}%20Error`;
+                    if (!e.target.dataset.errorHandled) {
+                      e.target.dataset.errorHandled = 'true';
+                      e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                          <rect width="100%" height="100%" fill="#1f2937"/>
+                          <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                            Page ${index + 1} Error
+                          </text>
+                        </svg>
+                      `);
+                    }
                   }}
                 />
               </div>
@@ -459,7 +469,17 @@ const ReaderPage = () => {
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
                 onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
+                  if (!e.target.dataset.errorHandled) {
+                    e.target.dataset.errorHandled = 'true';
+                    e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                        <rect width="100%" height="100%" fill="#1f2937"/>
+                        <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                          Page ${currentPage + 1} Error
+                        </text>
+                      </svg>
+                    `);
+                  }
                 }}
               />
             )}
@@ -472,7 +492,17 @@ const ReaderPage = () => {
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
                 onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 2}%20Error`;
+                  if (!e.target.dataset.errorHandled) {
+                    e.target.dataset.errorHandled = 'true';
+                    e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                        <rect width="100%" height="100%" fill="#1f2937"/>
+                        <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                          Page ${currentPage + 2} Error
+                        </text>
+                      </svg>
+                    `);
+                  }
                 }}
               />
             )}
@@ -488,7 +518,17 @@ const ReaderPage = () => {
               crossOrigin="anonymous"
               style={getImageStyles()}
               onError={(e) => {
-                e.target.src = `https://via.placeholder.com/800x1200/1f2937/f9fafb?text=Page%20${currentPage + 1}%20Error`;
+                if (!e.target.dataset.errorHandled) {
+                  e.target.dataset.errorHandled = 'true';
+                  e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                      <rect width="100%" height="100%" fill="#1f2937"/>
+                      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                        Page ${currentPage + 1} Error
+                      </text>
+                    </svg>
+                  `);
+                }
               }}
             />
           </div>
