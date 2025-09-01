@@ -35,14 +35,6 @@ export const DEFAULT_MANGA_SITES = [
     color: '#009639',
     description: 'Italian manga community site',
     logo: '/MangaReader-jp/manga-italia-favicon.png'
-  },
-  {
-    id: 'mangakatana',
-    name: 'MangaKatana',
-    url: 'https://mangakatana.com',
-    color: '#ff4757',
-    description: 'Global manga site with extensive collection',
-    logo: '/MangaReader-jp/mangakatana-favicon.png'
   }
 ];
 

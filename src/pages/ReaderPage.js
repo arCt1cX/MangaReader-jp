@@ -142,8 +142,7 @@ const ReaderPage = () => {
       
       // If chapterIdentifier is a full URL, extract just the chapter ID part
       if (chapterIdentifier && chapterIdentifier.startsWith('http')) {
-        // For MangaKatana URLs like "https://mangakatana.com/manga/naruto.1205/c1"
-        // Extract "naruto.1205/c1"
+        // Extract chapter ID from URL
         const urlMatch = chapterIdentifier.match(/\/manga\/(.+)/);
         if (urlMatch) {
           chapterIdentifier = urlMatch[1];
