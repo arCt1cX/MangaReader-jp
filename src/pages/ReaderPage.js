@@ -5,7 +5,6 @@ import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
-import CachedImage from '../components/CachedImage';
 
 const ReaderPage = () => {
   const { site, id, chapter } = useParams();
@@ -431,22 +430,27 @@ const ReaderPage = () => {
                 className="flex justify-center"
                 style={index < pages.length - 1 ? getPageSpacingStyle() : {}}
               >
-                <CachedImage
+                <img
                   src={page.url}
                   alt={`Page ${index + 1}`}
                   className="manga-page cursor-pointer select-none max-w-full h-auto"
                   onClick={() => setShowUI(!showUI)}
+                  crossOrigin="anonymous"
                   style={getImageStyles()}
                   loading="lazy"
-                  fallback={
-                    <div className="flex items-center justify-center bg-gray-800 border border-gray-600 rounded-lg" style={{ width: '800px', height: '1200px' }}>
-                      <div className="text-center text-gray-300">
-                        <div className="text-4xl mb-2">📚</div>
-                        <div className="text-lg">Page {index + 1} Error</div>
-                        <div className="text-sm text-gray-500 mt-1">Failed to load image</div>
-                      </div>
-                    </div>
-                  }
+                  onError={(e) => {
+                    if (!e.target.dataset.errorHandled) {
+                      e.target.dataset.errorHandled = 'true';
+                      e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                          <rect width="100%" height="100%" fill="#1f2937"/>
+                          <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                            Page ${index + 1} Error
+                          </text>
+                        </svg>
+                      `);
+                    }
+                  }}
                 />
               </div>
             ))}
@@ -458,61 +462,78 @@ const ReaderPage = () => {
             style={{ gap: `${settings.pageSpacing * 4}px` }}
           >
             {currentPage < pages.length && (
-              <CachedImage
+              <img
                 src={pages[currentPage].url}
                 alt={`Page ${currentPage + 1}`}
                 className="manga-page cursor-pointer select-none"
                 onClick={handleImageClick}
+                crossOrigin="anonymous"
                 style={getImageStyles(true)}
                 loading="lazy"
-                fallback={
-                  <div className="flex items-center justify-center bg-gray-800 border border-gray-600 rounded-lg" style={{ width: '400px', height: '600px' }}>
-                    <div className="text-center text-gray-300">
-                      <div className="text-3xl mb-2">📚</div>
-                      <div className="text-md">Page {currentPage + 1} Error</div>
-                    </div>
-                  </div>
-                }
+                onError={(e) => {
+                  if (!e.target.dataset.errorHandled) {
+                    e.target.dataset.errorHandled = 'true';
+                    e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                        <rect width="100%" height="100%" fill="#1f2937"/>
+                        <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                          Page ${currentPage + 1} Error
+                        </text>
+                      </svg>
+                    `);
+                  }
+                }}
               />
             )}
             {currentPage + 1 < pages.length && (
-              <CachedImage
+              <img
                 src={pages[currentPage + 1].url}
                 alt={`Page ${currentPage + 2}`}
                 className="manga-page cursor-pointer select-none"
                 onClick={handleImageClick}
+                crossOrigin="anonymous"
                 style={getImageStyles(true)}
                 loading="lazy"
-                fallback={
-                  <div className="flex items-center justify-center bg-gray-800 border border-gray-600 rounded-lg" style={{ width: '400px', height: '600px' }}>
-                    <div className="text-center text-gray-300">
-                      <div className="text-3xl mb-2">📚</div>
-                      <div className="text-md">Page {currentPage + 2} Error</div>
-                    </div>
-                  </div>
-                }
+                onError={(e) => {
+                  if (!e.target.dataset.errorHandled) {
+                    e.target.dataset.errorHandled = 'true';
+                    e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                      <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                        <rect width="100%" height="100%" fill="#1f2937"/>
+                        <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                          Page ${currentPage + 2} Error
+                        </text>
+                      </svg>
+                    `);
+                  }
+                }}
               />
             )}
           </div>
         ) : (
           // Single Page Mode
           <div className="max-w-4xl mx-auto">
-            <CachedImage
+            <img
               src={currentPageData.url}
               alt={`Page ${currentPage + 1}`}
               className="manga-page cursor-pointer select-none"
               onClick={handleImageClick}
+              crossOrigin="anonymous"
               style={getImageStyles()}
               loading="lazy"
-              fallback={
-                <div className="flex items-center justify-center bg-gray-800 border border-gray-600 rounded-lg" style={{ width: '800px', height: '1200px' }}>
-                  <div className="text-center text-gray-300">
-                    <div className="text-4xl mb-2">📚</div>
-                    <div className="text-lg">Page {currentPage + 1} Error</div>
-                    <div className="text-sm text-gray-500 mt-1">Failed to load image</div>
-                  </div>
-                </div>
-              }
+              onError={(e) => {
+                if (!e.target.dataset.errorHandled) {
+                  e.target.dataset.errorHandled = 'true';
+                  e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+                      <rect width="100%" height="100%" fill="#1f2937"/>
+                      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#f9fafb" text-anchor="middle" alignment-baseline="middle">
+                        Page ${currentPage + 1} Error
+                      </text>
+                    </svg>
+                  `);
+                }
+              }}
             />
           </div>
         )}
