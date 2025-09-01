@@ -35,6 +35,14 @@ export const DEFAULT_MANGA_SITES = [
     color: '#009639',
     description: 'Italian manga community site',
     logo: '/MangaReader-jp/manga-italia-favicon.png'
+  },
+  {
+    id: 'nelomanga',
+    name: 'NeloManga',
+    url: 'https://www.nelomanga.net',
+    color: '#ff6b35',
+    description: 'Popular manga reading site',
+    logo: '/MangaReader-jp/logo.svg' // Using default logo for now
   }
 ];
 
