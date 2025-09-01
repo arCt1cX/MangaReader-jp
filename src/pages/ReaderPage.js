@@ -437,7 +437,6 @@ const ReaderPage = () => {
                   onClick={() => setShowUI(!showUI)}
                   crossOrigin="anonymous"
                   style={getImageStyles()}
-                  loading="lazy"
                   onError={(e) => {
                     if (!e.target.dataset.errorHandled) {
                       e.target.dataset.errorHandled = 'true';
@@ -469,7 +468,6 @@ const ReaderPage = () => {
                 onClick={handleImageClick}
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
-                loading="lazy"
                 onError={(e) => {
                   if (!e.target.dataset.errorHandled) {
                     e.target.dataset.errorHandled = 'true';
@@ -493,7 +491,6 @@ const ReaderPage = () => {
                 onClick={handleImageClick}
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
-                loading="lazy"
                 onError={(e) => {
                   if (!e.target.dataset.errorHandled) {
                     e.target.dataset.errorHandled = 'true';
@@ -520,7 +517,6 @@ const ReaderPage = () => {
               onClick={handleImageClick}
               crossOrigin="anonymous"
               style={getImageStyles()}
-              loading="lazy"
               onError={(e) => {
                 if (!e.target.dataset.errorHandled) {
                   e.target.dataset.errorHandled = 'true';
