@@ -34,7 +34,9 @@ class OCRService {
       console.log('🔧 Setting OCR parameters...');
       await this.worker.setParameters({
         tessedit_pageseg_mode: '6', // SINGLE_BLOCK
-        preserve_interword_spaces: '0'
+        tessedit_char_whitelist: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンー一二三四五六七八九十百千万ぁぃぅぇぉっゃゅょァィゥェォッャュョ',
+        preserve_interword_spaces: '0',
+        tessedit_write_images: '0' // Don't write debug images
       });
 
       this.isInitialized = true;
@@ -103,6 +105,22 @@ class OCRService {
         ctx.drawImage(imageElement, 0, 0);
       }
 
+      // Preprocess image for better OCR results
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      
+      // Convert to grayscale and increase contrast for better OCR
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+        // Increase contrast
+        const contrast = gray > 128 ? 255 : 0;
+        data[i] = contrast;     // red
+        data[i + 1] = contrast; // green
+        data[i + 2] = contrast; // blue
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+
       console.log('🔍 Running OCR recognition...');
       const { data: { text, confidence } } = await this.worker.recognize(canvas);
       
@@ -111,7 +129,7 @@ class OCRService {
       return {
         text: text.trim(),
         confidence,
-        success: confidence > 60 // Consider successful if confidence > 60%
+        success: confidence > 30 // Lower threshold for manga OCR (was 60%)
       };
     } catch (error) {
       console.error('❌ OCR extraction failed:', error);

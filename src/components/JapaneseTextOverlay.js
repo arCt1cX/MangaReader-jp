@@ -34,7 +34,14 @@ const JapaneseTextOverlay = ({
       // Perform OCR on the entire image first to get all text
       const fullImageResult = await ocrService.extractText(imageElement);
       
-      if (fullImageResult.success && fullImageResult.text) {
+      console.log('📊 OCR Analysis Results:', {
+        text: fullImageResult.text,
+        confidence: fullImageResult.confidence,
+        success: fullImageResult.success,
+        textLength: fullImageResult.text?.length || 0
+      });
+      
+      if (fullImageResult.success && fullImageResult.text && fullImageResult.text.length > 5) {
         console.log('📝 Full image OCR result:', fullImageResult.text);
         
         // For now, create some smart regions based on typical manga layout
@@ -44,7 +51,11 @@ const JapaneseTextOverlay = ({
         
         console.log(`✅ Created ${regions.length} text regions`);
       } else {
-        console.log('❌ No text detected in image');
+        console.log('❌ No significant text detected in image (text too short or low confidence)');
+        // Still create some basic regions for manual interaction
+        const basicRegions = await createTextRegionsFromOCR(imageElement);
+        setDetectedTextRegions(basicRegions.slice(0, 4)); // Just show a few regions
+        console.log(`📝 Created ${basicRegions.slice(0, 4).length} basic regions for manual interaction`);
       }
     } catch (error) {
       console.error('❌ OCR analysis failed:', error);

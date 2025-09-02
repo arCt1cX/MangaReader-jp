@@ -536,6 +536,14 @@ const ReaderPage = () => {
                   onClick={() => setShowUI(!showUI)}
                   crossOrigin="anonymous"
                   style={getImageStyles()}
+                  onLoad={(e) => {
+                    // Auto OCR functionality
+                    if (supportsJapaneseText && settings.japaneseHelper?.autoOCR && index === currentPage) {
+                      console.log('🔄 Auto OCR triggered for page', index + 1);
+                      setCurrentImageElement(e.target);
+                      setShowJapaneseOverlay(true);
+                    }
+                  }}
                   onError={(e) => {
                     if (!e.target.dataset.errorHandled) {
                       e.target.dataset.errorHandled = 'true';
@@ -567,6 +575,14 @@ const ReaderPage = () => {
                 onClick={handleImageClick}
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
+                onLoad={(e) => {
+                  // Auto OCR functionality
+                  if (supportsJapaneseText && settings.japaneseHelper?.autoOCR) {
+                    console.log('🔄 Auto OCR triggered for page', currentPage + 1);
+                    setCurrentImageElement(e.target);
+                    setShowJapaneseOverlay(true);
+                  }
+                }}
                 onError={(e) => {
                   if (!e.target.dataset.errorHandled) {
                     e.target.dataset.errorHandled = 'true';
@@ -590,6 +606,14 @@ const ReaderPage = () => {
                 onClick={handleImageClick}
                 crossOrigin="anonymous"
                 style={getImageStyles(true)}
+                onLoad={(e) => {
+                  // Auto OCR functionality for second page in double mode
+                  if (supportsJapaneseText && settings.japaneseHelper?.autoOCR) {
+                    console.log('🔄 Auto OCR triggered for page', currentPage + 2);
+                    setCurrentImageElement(e.target);
+                    setShowJapaneseOverlay(true);
+                  }
+                }}
                 onError={(e) => {
                   if (!e.target.dataset.errorHandled) {
                     e.target.dataset.errorHandled = 'true';
@@ -616,6 +640,14 @@ const ReaderPage = () => {
               onClick={handleImageClick}
               crossOrigin="anonymous"
               style={getImageStyles()}
+              onLoad={(e) => {
+                // Auto OCR functionality
+                if (supportsJapaneseText && settings.japaneseHelper?.autoOCR) {
+                  console.log('🔄 Auto OCR triggered for page', currentPage + 1);
+                  setCurrentImageElement(e.target);
+                  setShowJapaneseOverlay(true);
+                }
+              }}
               onError={(e) => {
                 if (!e.target.dataset.errorHandled) {
                   e.target.dataset.errorHandled = 'true';
