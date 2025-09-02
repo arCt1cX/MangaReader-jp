@@ -140,26 +140,26 @@ const SearchPage = () => {
             setLoading(true);
             try {
               let allResults = [];
+              let lastResponse = null;
               for (let p = 1; p <= initialPage; p++) {
                 const response = await apiService.searchManga(site, initialQuery, p);
                 if (response.success) {
                   allResults = [...allResults, ...(response.data.manga || [])];
-                  if (p === initialPage) {
-                    setHasMore(response.data.hasMore || false);
-                  }
+                  lastResponse = response; // Track the last successful response
                 } else {
                   throw new Error(response.error || 'Search failed');
                 }
               }
               setResults(allResults);
               setPage(initialPage);
+              setHasMore(lastResponse?.data.hasMore || false);
               
               // Cache the complete results
               const cacheData = {
                 results: allResults,
                 query: initialQuery,
                 page: initialPage,
-                hasMore: response.data.hasMore || false,
+                hasMore: lastResponse?.data.hasMore || false,
                 timestamp: Date.now()
               };
               localStorage.setItem(searchKey, JSON.stringify(cacheData));
