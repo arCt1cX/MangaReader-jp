@@ -1,35 +1,81 @@
-import { createWorker } from 'tesseract.js';
+import Tesseract from 'tesseract.js';
 
 class OCRService {
   constructor() {
     this.worker = null;
     this.isInitialized = false;
+    this.initializationPromise = null;
   }
 
   async initialize() {
     if (this.isInitialized) return;
+    if (this.initializationPromise) return this.initializationPromise;
 
+    this.initializationPromise = this._doInitialize();
+    return this.initializationPromise;
+  }
+
+  async _doInitialize() {
     try {
-      this.worker = await createWorker('jpn', 1, {
-        logger: m => console.log(m)
+      console.log('🔧 Initializing OCR Service...');
+      
+      // Create worker using Tesseract.js v4 API
+      this.worker = await Tesseract.createWorker({
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+          }
+        }
       });
 
+      await this.worker.loadLanguage('jpn');
+      await this.worker.initialize('jpn');
+
+      console.log('🔧 Setting OCR parameters...');
       await this.worker.setParameters({
-        tessedit_char_whitelist: 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンー一二三四五六七八九十百千万億兆京垓𥝱穣溝澗正載極恒河沙阿僧祇那由他不可思議無量大数ぁぃぅぇぉっゃゅょァィゥェォッャュョ',
-        tessedit_pageseg_mode: '6'
+        tessedit_pageseg_mode: '6', // SINGLE_BLOCK
+        preserve_interword_spaces: '0'
       });
 
       this.isInitialized = true;
-      console.log('OCR Service initialized');
+      console.log('✅ OCR Service initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize OCR:', error);
+      console.error('❌ Failed to initialize OCR:', error);
+      this.initializationPromise = null;
+      // Try to cleanup if initialization failed
+      if (this.worker) {
+        try {
+          await this.worker.terminate();
+        } catch (cleanupError) {
+          console.error('Cleanup failed:', cleanupError);
+        }
+        this.worker = null;
+      }
       throw error;
     }
   }
 
   async extractText(imageElement, boundingBox = null) {
-    if (!this.isInitialized) {
+    try {
       await this.initialize();
+    } catch (error) {
+      console.error('❌ OCR initialization failed, returning empty result:', error);
+      return {
+        text: '',
+        confidence: 0,
+        success: false,
+        error: 'OCR initialization failed'
+      };
+    }
+
+    if (!this.worker) {
+      console.error('❌ OCR worker not available');
+      return {
+        text: '',
+        confidence: 0,
+        success: false,
+        error: 'OCR worker not available'
+      };
     }
 
     try {
@@ -57,7 +103,10 @@ class OCRService {
         ctx.drawImage(imageElement, 0, 0);
       }
 
+      console.log('🔍 Running OCR recognition...');
       const { data: { text, confidence } } = await this.worker.recognize(canvas);
+      
+      console.log(`📝 OCR Result: "${text.trim()}" (confidence: ${confidence}%)`);
       
       return {
         text: text.trim(),
@@ -65,7 +114,7 @@ class OCRService {
         success: confidence > 60 // Consider successful if confidence > 60%
       };
     } catch (error) {
-      console.error('OCR extraction failed:', error);
+      console.error('❌ OCR extraction failed:', error);
       return {
         text: '',
         confidence: 0,
@@ -134,9 +183,15 @@ class OCRService {
 
   async cleanup() {
     if (this.worker) {
-      await this.worker.terminate();
+      try {
+        await this.worker.terminate();
+        console.log('✅ OCR worker terminated');
+      } catch (error) {
+        console.error('❌ Error terminating OCR worker:', error);
+      }
       this.worker = null;
       this.isInitialized = false;
+      this.initializationPromise = null;
     }
   }
 }
