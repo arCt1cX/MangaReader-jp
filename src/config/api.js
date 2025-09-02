@@ -43,14 +43,6 @@ export const DEFAULT_MANGA_SITES = [
     color: '#ff6b35',
     description: 'Popular manga reading site',
     logo: '/MangaReader-jp/nelomanga-favicon.png' // Using default logo for now
-  },
-  {
-    id: 'mangahere',
-    name: 'MangaHere',
-    url: 'https://www.mangahere.cc',
-    color: '#2196f3',
-    description: 'Extensive manga collection with latest updates',
-    logo: '/MangaReader-jp/mangahere-favicon.png' // Using default logo for now
   }
 ];
 
