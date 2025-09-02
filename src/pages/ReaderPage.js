@@ -37,7 +37,7 @@ const ReaderPage = () => {
   const mangaData = location.state?.mangaData;
 
   // Check if current site supports Japanese text (like rawkuma)
-  const supportsJapaneseText = ['rawkuma'].includes(site);
+  const supportsJapaneseText = ['rawkuma'].includes(site) && settings.japaneseHelper?.enabled;
 
   // Helper function to get image styles based on zoom settings
   const getImageStyles = (isDoublePageMode = false) => {
