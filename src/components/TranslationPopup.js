@@ -15,11 +15,15 @@ const TranslationPopup = ({
   const [tokenizedText, setTokenizedText] = useState([]);
 
   useEffect(() => {
-    if (isVisible && text) {
-      fetchTranslationData();
-      analyzeJapaneseText();
-    }
-  }, [isVisible, text]);
+    const loadData = async () => {
+      if (isVisible && text) {
+        await fetchTranslationData();
+        await analyzeJapaneseText();
+      }
+    };
+    
+    loadData();
+  }, [isVisible, text]); // Removed functions from dependencies to avoid infinite loops
 
   const fetchTranslationData = async () => {
     setLoading(true);

@@ -30,9 +30,6 @@ const ReaderPage = () => {
     text: '',
     position: { x: 0, y: 0 }
   });
-  
-  // Refs for image elements
-  const imageRefs = useRef([]);
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;

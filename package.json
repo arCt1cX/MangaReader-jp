@@ -30,7 +30,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "cross-env CI=false craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
@@ -64,6 +64,7 @@
     "autoprefixer": "^10.4.15",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
+    "cross-env": "^10.0.0",
     "postcss": "^8.4.29",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",

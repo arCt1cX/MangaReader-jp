@@ -1,5 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import japaneseAnalyzer from '../services/japaneseAnalyzer';
+import React, { useState, useRef, useEffect } from 'react';
 import ocrService from '../services/ocrService';
 
 const JapaneseTextOverlay = ({ 
@@ -38,26 +37,23 @@ const JapaneseTextOverlay = ({
 
   // Auto-detect text regions when overlay becomes visible
   useEffect(() => {
-    if (isVisible && imageElement && textRegions.length === 0) {
-      detectTextRegions();
-    }
-  }, [isVisible, imageElement]);
-
-  const detectTextRegions = async () => {
-    if (!imageElement) return;
+    const detectAndSetRegions = async () => {
+      if (isVisible && imageElement && textRegions.length === 0) {
+        setIsAnalyzing(true);
+        try {
+          const regions = await generateTextRegions(imageElement);
+          setTextRegions(regions);
+          setShowTextBoxes(true);
+        } catch (error) {
+          console.error('Text region detection failed:', error);
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    };
     
-    setIsAnalyzing(true);
-    try {
-      // Use a simplified grid-based approach for text detection
-      const regions = await generateTextRegions(imageElement);
-      setTextRegions(regions);
-      setShowTextBoxes(true);
-    } catch (error) {
-      console.error('Text region detection failed:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+    detectAndSetRegions();
+  }, [isVisible, imageElement, textRegions.length]);
 
   const generateTextRegions = async (image) => {
     // Create a grid of potential text regions based on typical manga layout
