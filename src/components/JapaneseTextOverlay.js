@@ -19,19 +19,35 @@ const JapaneseTextOverlay = ({
     if (imageElement && overlayRef.current) {
       const updateImageSize = () => {
         const rect = imageElement.getBoundingClientRect();
-        const overlayRect = overlayRef.current.getBoundingClientRect();
         
         setImageSize({
           width: rect.width,
           height: rect.height,
-          offsetX: rect.left - overlayRect.left,
-          offsetY: rect.top - overlayRect.top
+          offsetX: 0, // Simplified - overlay covers full area
+          offsetY: 0
+        });
+        
+        console.log('📐 Updated image size:', {
+          width: rect.width,
+          height: rect.height,
+          naturalWidth: imageElement.naturalWidth,
+          naturalHeight: imageElement.naturalHeight
         });
       };
 
+      // Initial size calculation
       updateImageSize();
+      
+      // Update on resize
       window.addEventListener('resize', updateImageSize);
-      return () => window.removeEventListener('resize', updateImageSize);
+      
+      // Also update when image loads (in case it wasn't loaded yet)
+      imageElement.addEventListener('load', updateImageSize);
+      
+      return () => {
+        window.removeEventListener('resize', updateImageSize);
+        imageElement.removeEventListener('load', updateImageSize);
+      };
     }
   }, [imageElement, isVisible]);
 
@@ -61,8 +77,20 @@ const JapaneseTextOverlay = ({
     const gridRows = 8;
     const gridCols = 6;
     
-    const regionWidth = imageSize.width / gridCols;
-    const regionHeight = imageSize.height / gridRows;
+    // Use actual image element dimensions if imageSize is not available
+    const actualWidth = imageSize.width || image.offsetWidth || image.clientWidth;
+    const actualHeight = imageSize.height || image.offsetHeight || image.clientHeight;
+    
+    console.log('🖼️ Image dimensions for overlay:', { 
+      imageSize, 
+      actualWidth, 
+      actualHeight,
+      offsetWidth: image.offsetWidth,
+      clientWidth: image.clientWidth 
+    });
+    
+    const regionWidth = actualWidth / gridCols;
+    const regionHeight = actualHeight / gridRows;
     
     for (let row = 0; row < gridRows; row++) {
       for (let col = 0; col < gridCols; col++) {
@@ -78,11 +106,14 @@ const JapaneseTextOverlay = ({
       }
     }
     
+    console.log('📍 Generated', regions.length, 'text regions');
     return regions;
   };
 
   const handleRegionClick = async (region, event) => {
     event.stopPropagation();
+    
+    console.log('🖱️ Region clicked:', region.id);
     
     if (selectedRegion?.id === region.id) {
       setSelectedRegion(null);
@@ -102,8 +133,14 @@ const JapaneseTextOverlay = ({
         height: region.height * scaleY
       };
 
+      console.log('📍 OCR bounding box:', boundingBox);
+      console.log('🖼️ Image natural size:', imageElement.naturalWidth, 'x', imageElement.naturalHeight);
+      console.log('🖼️ Image display size:', imageSize.width, 'x', imageSize.height);
+
       // Extract text from the selected region
       const ocrResult = await ocrService.extractText(imageElement, boundingBox);
+      
+      console.log('🔍 OCR result:', ocrResult);
       
       if (ocrResult.success && ocrResult.text) {
         const updatedRegion = {
@@ -126,10 +163,10 @@ const JapaneseTextOverlay = ({
         });
       }
     } catch (error) {
-      console.error('OCR failed:', error);
+      console.error('❌ OCR failed:', error);
       setSelectedRegion({
         ...region,
-        text: 'OCR failed',
+        text: 'OCR failed: ' + error.message,
         confidence: 0
       });
     } finally {
@@ -206,31 +243,36 @@ const JapaneseTextOverlay = ({
 
       {/* Text regions overlay */}
       <div 
-        className="absolute z-10"
-        style={{
-          left: imageSize.offsetX,
-          top: imageSize.offsetY,
-          width: imageSize.width,
-          height: imageSize.height
-        }}
+        className="absolute z-10 inset-0"
       >
+        {/* Debug info */}
+        <div className="absolute top-16 left-4 z-30 bg-black/80 text-white text-xs p-2 rounded">
+          Regions: {textRegions.length} | Image: {imageSize.width}x{imageSize.height}
+        </div>
+        
         {/* Grid regions */}
         {showTextBoxes && textRegions.map((region) => (
           <div
             key={region.id}
             className={`absolute border-2 cursor-pointer transition-all duration-200 ${
               selectedRegion?.id === region.id
-                ? 'border-blue-400 bg-blue-400/20'
-                : 'border-green-400/50 bg-green-400/10 hover:border-green-400 hover:bg-green-400/20'
+                ? 'border-blue-400 bg-blue-400/30'
+                : 'border-green-400 bg-green-400/20 hover:border-green-300 hover:bg-green-400/30'
             }`}
             style={{
-              left: region.x,
-              top: region.y,
-              width: region.width,
-              height: region.height
+              left: `${(region.x / imageSize.width) * 100}%`,
+              top: `${(region.y / imageSize.height) * 100}%`,
+              width: `${(region.width / imageSize.width) * 100}%`,
+              height: `${(region.height / imageSize.height) * 100}%`
             }}
             onClick={(e) => handleRegionClick(region, e)}
+            title={`Click to analyze text in region ${region.id}`}
           >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-xs bg-black/50 px-1 rounded">
+                {region.id.split('-').slice(-2).join(',')}
+              </span>
+            </div>
             {region.text && (
               <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-xs p-1 truncate">
                 {region.text}
@@ -244,10 +286,10 @@ const JapaneseTextOverlay = ({
           <div
             className="absolute border-2 border-blue-400 bg-blue-400/20"
             style={{
-              left: selectedRegion.x,
-              top: selectedRegion.y,
-              width: selectedRegion.width,
-              height: selectedRegion.height
+              left: `${(selectedRegion.x / imageSize.width) * 100}%`,
+              top: `${(selectedRegion.y / imageSize.height) * 100}%`,
+              width: `${(selectedRegion.width / imageSize.width) * 100}%`,
+              height: `${(selectedRegion.height / imageSize.height) * 100}%`
             }}
           >
             {selectedRegion.text && (
