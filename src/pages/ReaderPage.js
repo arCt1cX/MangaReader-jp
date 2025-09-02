@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import { useLibrary } from '../contexts/LibraryContext';
 import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import LoadingSpinner from '../components/LoadingSpinner';
+import JapaneseTextOverlay from '../components/JapaneseTextOverlay';
+import TranslationPopup from '../components/TranslationPopup';
 
 const ReaderPage = () => {
   const { site, id, chapter } = useParams();
@@ -19,11 +21,26 @@ const ReaderPage = () => {
   const [error, setError] = useState(null);
   const [showUI, setShowUI] = useState(true);
   const [contentFormat, setContentFormat] = useState(null); // 'manga' or 'manhwa'
+  
+  // Japanese text analysis states
+  const [showJapaneseOverlay, setShowJapaneseOverlay] = useState(false);
+  const [currentImageElement, setCurrentImageElement] = useState(null);
+  const [translationPopup, setTranslationPopup] = useState({
+    isVisible: false,
+    text: '',
+    position: { x: 0, y: 0 }
+  });
+  
+  // Refs for image elements
+  const imageRefs = useRef([]);
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
   const chapterData = location.state?.chapterData;
   const mangaData = location.state?.mangaData;
+
+  // Check if current site supports Japanese text (like rawkuma)
+  const supportsJapaneseText = ['rawkuma'].includes(site);
 
   // Helper function to get image styles based on zoom settings
   const getImageStyles = (isDoublePageMode = false) => {
@@ -279,6 +296,79 @@ const ReaderPage = () => {
     }
   }, [currentPage, settings.readingMode, contentFormat]);
 
+  // Japanese text overlay functions
+  const handleJapaneseOverlayToggle = () => {
+    if (!supportsJapaneseText) return;
+    
+    if (!showJapaneseOverlay) {
+      // Get the current image element
+      const currentImageRef = getCurrentImageElement();
+      if (currentImageRef) {
+        setCurrentImageElement(currentImageRef);
+        setShowJapaneseOverlay(true);
+      }
+    } else {
+      setShowJapaneseOverlay(false);
+      setCurrentImageElement(null);
+    }
+  };
+
+  const getCurrentImageElement = () => {
+    // Find the current image element based on reading mode
+    const images = document.querySelectorAll('.manga-page');
+    if (images.length === 0) return null;
+    
+    if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
+      // For scroll mode, find the image that's most visible in the viewport
+      let mostVisibleImage = null;
+      let maxVisibleArea = 0;
+      
+      images.forEach((img) => {
+        const rect = img.getBoundingClientRect();
+        const visibleHeight = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+        const visibleArea = Math.max(0, visibleHeight) * rect.width;
+        
+        if (visibleArea > maxVisibleArea) {
+          maxVisibleArea = visibleArea;
+          mostVisibleImage = img;
+        }
+      });
+      
+      return mostVisibleImage;
+    } else {
+      // For single/double page mode, return the first visible image
+      return images[0];
+    }
+  };
+
+  const handleTranslationRequest = (textRegion) => {
+    if (textRegion.text) {
+      const rect = document.querySelector('.manga-page').getBoundingClientRect();
+      setTranslationPopup({
+        isVisible: true,
+        text: textRegion.text,
+        position: {
+          x: rect.left + (textRegion.x || 0),
+          y: rect.top + (textRegion.y || 0)
+        }
+      });
+    }
+  };
+
+  const closeTranslationPopup = () => {
+    setTranslationPopup({
+      isVisible: false,
+      text: '',
+      position: { x: 0, y: 0 }
+    });
+  };
+
+  const closeJapaneseOverlay = () => {
+    setShowJapaneseOverlay(false);
+    setCurrentImageElement(null);
+    closeTranslationPopup();
+  };
+
   const handleImageClick = (e) => {
     // Force scroll mode for manhwa content
     const effectiveReadingMode = contentFormat === 'manhwa' ? 'scroll' : settings.readingMode;
@@ -392,6 +482,19 @@ const ReaderPage = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {supportsJapaneseText && (
+                <button
+                  onClick={handleJapaneseOverlayToggle}
+                  className={`text-sm px-3 py-1 rounded transition-colors ${
+                    showJapaneseOverlay 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                  }`}
+                  title="Toggle Japanese text overlay"
+                >
+                  🈴 {showJapaneseOverlay ? 'JP ON' : 'JP'}
+                </button>
+              )}
               {nextChapter && (
                 <button
                   onClick={goToNextChapter}
@@ -651,6 +754,26 @@ const ReaderPage = () => {
             onClick={goToNextPage}
           ></div>
         </div>
+      )}
+
+      {/* Japanese Text Overlay */}
+      {supportsJapaneseText && showJapaneseOverlay && currentImageElement && (
+        <JapaneseTextOverlay
+          imageElement={currentImageElement}
+          isVisible={showJapaneseOverlay}
+          onTranslationRequest={handleTranslationRequest}
+          onClose={closeJapaneseOverlay}
+        />
+      )}
+
+      {/* Translation Popup */}
+      {translationPopup.isVisible && (
+        <TranslationPopup
+          text={translationPopup.text}
+          isVisible={translationPopup.isVisible}
+          position={translationPopup.position}
+          onClose={closeTranslationPopup}
+        />
       )}
     </div>
   );
