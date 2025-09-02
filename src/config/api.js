@@ -43,6 +43,14 @@ export const DEFAULT_MANGA_SITES = [
     color: '#ff6b35',
     description: 'Popular manga reading site',
     logo: '/MangaReader-jp/nelomanga-favicon.png' // Using default logo for now
+  },
+  {
+    id: 'rawkuma',
+    name: 'Rawkuma',
+    url: 'https://rawkuma.net',
+    color: '#e91e63',
+    description: 'High quality raw manga with latest releases',
+    logo: '/MangaReader-jp/rawkuma-favicon.png' // Using default logo for now
   }
 ];
 
