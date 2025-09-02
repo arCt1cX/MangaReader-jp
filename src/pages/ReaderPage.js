@@ -339,16 +339,18 @@ const ReaderPage = () => {
   };
 
   const handleTranslationRequest = (textRegion) => {
-    if (textRegion.text) {
-      const rect = document.querySelector('.manga-page').getBoundingClientRect();
+    console.log('🌐 Translation request received:', textRegion);
+    
+    if (textRegion.text && textRegion.text.trim()) {
       setTranslationPopup({
         isVisible: true,
-        text: textRegion.text,
-        position: {
-          x: rect.left + (textRegion.x || 0),
-          y: rect.top + (textRegion.y || 0)
-        }
+        text: textRegion.text.trim(),
+        position: textRegion.position || { x: 100, y: 100 }
       });
+      
+      console.log('📝 Translation popup opened with text:', textRegion.text.trim());
+    } else {
+      console.log('❌ No text provided for translation');
     }
   };
 
@@ -537,11 +539,13 @@ const ReaderPage = () => {
                   crossOrigin="anonymous"
                   style={getImageStyles()}
                   onLoad={(e) => {
-                    // Auto OCR functionality
-                    if (supportsJapaneseText && settings.japaneseHelper?.autoOCR && index === currentPage) {
+                    // Auto OCR functionality (only if explicitly enabled)
+                    if (supportsJapaneseText && settings.japaneseHelper?.autoOCR && index === currentPage && !showJapaneseOverlay) {
                       console.log('🔄 Auto OCR triggered for page', index + 1);
-                      setCurrentImageElement(e.target);
-                      setShowJapaneseOverlay(true);
+                      setTimeout(() => {
+                        setCurrentImageElement(e.target);
+                        setShowJapaneseOverlay(true);
+                      }, 500); // Small delay to ensure image is fully loaded
                     }
                   }}
                   onError={(e) => {

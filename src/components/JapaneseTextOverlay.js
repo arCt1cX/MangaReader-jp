@@ -68,34 +68,33 @@ const JapaneseTextOverlay = ({
   const createTextRegionsFromOCR = async (image) => {
     // Create strategic regions where manga text typically appears
     const regions = [];
-    const rect = image.getBoundingClientRect();
     
-    // Speech bubbles are typically in upper areas, thought bubbles at top
-    // Text boxes usually at bottom, sound effects scattered
+    // Use actual image dimensions, not display dimensions
+    const imageWidth = image.naturalWidth;
+    const imageHeight = image.naturalHeight;
+    
+    console.log(`📐 Creating regions for image: ${imageWidth}x${imageHeight}`);
+    
+    // Much smaller, more targeted regions for better accuracy
     const commonTextAreas = [
-      // Top area - thought bubbles
-      { x: 0.1, y: 0.05, width: 0.8, height: 0.2, type: 'thought' },
-      // Upper middle - speech bubbles
-      { x: 0.05, y: 0.15, width: 0.4, height: 0.3, type: 'speech' },
-      { x: 0.55, y: 0.15, width: 0.4, height: 0.3, type: 'speech' },
-      // Middle areas - dialogue
-      { x: 0.1, y: 0.35, width: 0.35, height: 0.25, type: 'dialogue' },
-      { x: 0.55, y: 0.35, width: 0.35, height: 0.25, type: 'dialogue' },
-      // Lower area - narration boxes
-      { x: 0.05, y: 0.7, width: 0.9, height: 0.25, type: 'narration' },
-      // Side areas - sound effects
-      { x: 0.02, y: 0.2, width: 0.15, height: 0.6, type: 'sfx' },
-      { x: 0.83, y: 0.2, width: 0.15, height: 0.6, type: 'sfx' }
+      // Small test regions in strategic positions
+      { x: 0.25, y: 0.15, width: 0.2, height: 0.1, type: 'speech' },
+      { x: 0.55, y: 0.15, width: 0.2, height: 0.1, type: 'speech' },
+      { x: 0.25, y: 0.35, width: 0.2, height: 0.1, type: 'dialogue' },
+      { x: 0.55, y: 0.35, width: 0.2, height: 0.1, type: 'dialogue' },
+      { x: 0.25, y: 0.55, width: 0.2, height: 0.1, type: 'thought' },
+      { x: 0.55, y: 0.55, width: 0.2, height: 0.1, type: 'thought' },
+      { x: 0.2, y: 0.75, width: 0.6, height: 0.1, type: 'narration' }
     ];
 
     for (let i = 0; i < commonTextAreas.length; i++) {
       const area = commonTextAreas[i];
       regions.push({
         id: `text-${area.type}-${i}`,
-        x: area.x * rect.width,
-        y: area.y * rect.height,
-        width: area.width * rect.width,
-        height: area.height * rect.height,
+        x: Math.round(area.x * imageWidth),
+        y: Math.round(area.y * imageHeight),
+        width: Math.round(area.width * imageWidth),
+        height: Math.round(area.height * imageHeight),
         type: area.type,
         text: '',
         confidence: 0
@@ -117,15 +116,12 @@ const JapaneseTextOverlay = ({
 
     setIsAnalyzing(true);
     try {
-      // Calculate coordinates on the original image
-      const scaleX = imageElement.naturalWidth / imageElement.offsetWidth;
-      const scaleY = imageElement.naturalHeight / imageElement.offsetHeight;
-      
+      // Use the region coordinates directly (they're already in natural image dimensions)
       const boundingBox = {
-        x: region.x * scaleX,
-        y: region.y * scaleY,
-        width: region.width * scaleX,
-        height: region.height * scaleY
+        x: region.x,
+        y: region.y,
+        width: region.width,
+        height: region.height
       };
 
       console.log('📍 OCR bounding box:', boundingBox);
@@ -144,14 +140,32 @@ const JapaneseTextOverlay = ({
         
         setSelectedRegion(updatedRegion);
         
+        // Update the region in the list
+        setDetectedTextRegions(prev => 
+          prev.map(r => r.id === region.id ? updatedRegion : r)
+        );
+        
+        // Calculate position for translation popup
+        const imageRect = imageElement.getBoundingClientRect();
+        const scaleX = imageRect.width / imageElement.naturalWidth;
+        const scaleY = imageRect.height / imageElement.naturalHeight;
+        
+        const popupPosition = {
+          x: imageRect.left + (region.x * scaleX),
+          y: imageRect.top + (region.y * scaleY)
+        };
+        
         // Request translation for the extracted text
         if (onTranslationRequest) {
-          onTranslationRequest(updatedRegion);
+          onTranslationRequest({
+            ...updatedRegion,
+            position: popupPosition
+          });
         }
       } else {
         setSelectedRegion({
           ...region,
-          text: 'No Japanese text detected in this area',
+          text: 'No readable Japanese text found in this area',
           confidence: 0
         });
       }
@@ -226,36 +240,43 @@ const JapaneseTextOverlay = ({
       )}
 
       {/* Detected text regions */}
-      {detectedTextRegions.map((region) => (
-        <div
-          key={region.id}
-          className={`absolute border-2 cursor-pointer transition-all duration-200 ${
-            selectedRegion?.id === region.id
-              ? 'border-white bg-white/20 ring-2 ring-white/50'
-              : `${getRegionColor(region.type)} hover:bg-opacity-30 hover:border-opacity-80`
-          }`}
-          style={{
-            left: region.x,
-            top: region.y,
-            width: region.width,
-            height: region.height
-          }}
-          onClick={(e) => handleRegionClick(region, e)}
-          title={`Click to analyze ${region.type} text`}
-        >
-          {/* Region type indicator */}
-          <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-1 rounded">
-            {region.type}
-          </div>
-          
-          {/* Extracted text display */}
-          {region.text && (
-            <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-xs p-1 max-h-8 overflow-hidden">
-              {region.text}
+      {detectedTextRegions.map((region) => {
+        // Calculate scaling factors to convert from natural image coordinates to display coordinates
+        const displayRect = imageElement.getBoundingClientRect();
+        const scaleX = displayRect.width / imageElement.naturalWidth;
+        const scaleY = displayRect.height / imageElement.naturalHeight;
+        
+        return (
+          <div
+            key={region.id}
+            className={`absolute border-2 cursor-pointer transition-all duration-200 ${
+              selectedRegion?.id === region.id
+                ? 'border-white bg-white/20 ring-2 ring-white/50'
+                : `${getRegionColor(region.type)} hover:bg-opacity-30 hover:border-opacity-80`
+            }`}
+            style={{
+              left: region.x * scaleX,
+              top: region.y * scaleY,
+              width: region.width * scaleX,
+              height: region.height * scaleY
+            }}
+            onClick={(e) => handleRegionClick(region, e)}
+            title={`Click to analyze ${region.type} text`}
+          >
+            {/* Region type indicator */}
+            <div className="absolute top-1 left-1 bg-black/60 text-white text-xs px-1 rounded">
+              {region.type}
             </div>
-          )}
-        </div>
-      ))}
+            
+            {/* Extracted text display */}
+            {region.text && (
+              <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-xs p-1 max-h-8 overflow-hidden">
+                {region.text}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
