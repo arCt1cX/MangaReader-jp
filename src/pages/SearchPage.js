@@ -27,12 +27,11 @@ const SearchPage = () => {
       if (response.success) {
         if (replace) {
           setResults(response.data.manga || []);
-          setPage(1); // Reset to page 1 for new searches
         } else {
           setResults(prev => [...prev, ...(response.data.manga || [])]);
-          setPage(searchPage); // Update page for load more
         }
         setHasMore(response.data.hasMore || false);
+        setPage(searchPage);
       } else {
         setError(response.error || 'Search failed');
       }
