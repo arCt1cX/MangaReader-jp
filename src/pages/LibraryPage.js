@@ -66,37 +66,14 @@ const LibraryPage = () => {
             <h1 className="text-3xl font-bold text-manga-text">
               📚 My Library
             </h1>
-            <div className="flex items-center gap-4">
-              {/* Sort Dropdown */}
-              {library.length > 0 && (
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-manga-light text-manga-text border border-manga-light rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-manga-accent appearance-none cursor-pointer pr-8"
-                  >
-                    <option value="recent">Recently Added</option>
-                    <option value="alphabetical">A-Z</option>
-                    <option value="alphabetical-desc">Z-A</option>
-                    <option value="lastRead">Last Read</option>
-                  </select>
-                  <Icon 
-                    name="arrowDown" 
-                    size={12} 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-manga-text/70"
-                  />
-                </div>
-              )}
-              
-              {library.length > 0 && (
-                <button
-                  onClick={handleClearLibrary}
-                  className="text-red-400 hover:text-red-300 text-sm underline"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
+            {library.length > 0 && (
+              <button
+                onClick={handleClearLibrary}
+                className="text-red-400 hover:text-red-300 text-sm underline"
+              >
+                Clear All
+              </button>
+            )}
           </div>
           
           {/* Tab Navigation */}
@@ -123,12 +100,35 @@ const LibraryPage = () => {
             </button>
           </div>
           
-          <p className="text-manga-text/70 mt-2">
-            {activeTab === 'library' 
-              ? `${library.length} manga in your library`
-              : `${currentlyReading.length} manga you're currently reading`
-            }
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-manga-text/70">
+              {activeTab === 'library' 
+                ? `${library.length} manga in your library`
+                : `${currentlyReading.length} manga you're currently reading`
+              }
+            </p>
+            
+            {/* Sort Dropdown */}
+            {((activeTab === 'library' && library.length > 0) || (activeTab === 'currently-reading' && currentlyReading.length > 0)) && (
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-manga-light text-manga-text border border-manga-light rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-manga-accent appearance-none cursor-pointer pr-8"
+                >
+                  <option value="recent">Recently Added</option>
+                  <option value="alphabetical">A-Z</option>
+                  <option value="alphabetical-desc">Z-A</option>
+                  <option value="lastRead">Last Read</option>
+                </select>
+                <Icon 
+                  name="arrowDown" 
+                  size={12} 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-manga-text/70"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
