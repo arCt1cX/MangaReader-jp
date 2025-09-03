@@ -39,13 +39,6 @@ const MangaDetailPage = () => {
           cachedManga.coverImage = mangaFromState.coverImage;
         }
         setManga(cachedManga);
-        
-        // Even when using cache, update library with the cached data to ensure consistency
-        if (isMangaInLibrary(cachedManga.id)) {
-          console.log('📚 Updating library manga with cached chapter data');
-          addManga(cachedManga);
-        }
-        
         setLoading(false);
         return;
       }
@@ -67,13 +60,6 @@ const MangaDetailPage = () => {
         chapterCache.setMangaDetails(site, id, mangaData);
         
         setManga(mangaData);
-        
-        // If this manga is already in the library, update it with fresh chapter data
-        // This ensures the home page shows correct status when new chapters are available
-        if (isMangaInLibrary(mangaData.id)) {
-          console.log('📚 Updating library manga with fresh chapter data');
-          addManga(mangaData);
-        }
       } else {
         setError(response.error || 'Failed to load manga details');
       }

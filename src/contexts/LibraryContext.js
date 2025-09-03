@@ -12,7 +12,8 @@ const LIBRARY_ACTIONS = {
   MARK_CHAPTER_READ: 'MARK_CHAPTER_READ',
   CLEAR_LIBRARY: 'CLEAR_LIBRARY',
   ADD_TO_CURRENTLY_READING: 'ADD_TO_CURRENTLY_READING',
-  REMOVE_FROM_CURRENTLY_READING: 'REMOVE_FROM_CURRENTLY_READING'
+  REMOVE_FROM_CURRENTLY_READING: 'REMOVE_FROM_CURRENTLY_READING',
+  UPDATE_MANGA_DATA: 'UPDATE_MANGA_DATA'
 };
 
 // Reducer
@@ -22,26 +23,35 @@ function libraryReducer(state, action) {
       return action.payload;
 
     case LIBRARY_ACTIONS.ADD_MANGA:
-      const existingManga = state[action.payload.id];
       return {
         ...state,
-        [action.payload.id]: existingManga ? {
-          // Preserve reading progress but update manga details (including chapters)
-          ...action.payload,
-          addedAt: existingManga.addedAt,
-          lastRead: existingManga.lastRead,
-          currentChapter: existingManga.currentChapter,
-          currentPage: existingManga.currentPage,
-          totalPages: existingManga.totalPages,
-          chaptersRead: existingManga.chaptersRead || [],
-          isCurrentlyReading: existingManga.isCurrentlyReading
-        } : {
-          // New manga - initialize with defaults
+        [action.payload.id]: {
           ...action.payload,
           addedAt: new Date().toISOString(),
           lastRead: null,
           currentChapter: null,
           chaptersRead: []
+        }
+      };
+
+    case LIBRARY_ACTIONS.UPDATE_MANGA_DATA:
+      // Update existing manga data while preserving read status and other library-specific data
+      const existingManga = state[action.payload.id];
+      if (!existingManga) {
+        return state; // Don't add new manga, only update existing ones
+      }
+      
+      return {
+        ...state,
+        [action.payload.id]: {
+          ...existingManga, // Preserve existing library data (read status, etc.)
+          ...action.payload, // Update with new manga data (chapters, etc.)
+          // Explicitly preserve these library-specific fields
+          addedAt: existingManga.addedAt,
+          lastRead: existingManga.lastRead,
+          currentChapter: existingManga.currentChapter,
+          chaptersRead: existingManga.chaptersRead,
+          isCurrentlyReading: existingManga.isCurrentlyReading
         }
       };
 
@@ -304,6 +314,13 @@ export function LibraryProvider({ children }) {
     return sortedChapters[sortedChapters.length - 1];
   };
 
+  const updateMangaData = (manga) => {
+    dispatch({
+      type: LIBRARY_ACTIONS.UPDATE_MANGA_DATA,
+      payload: manga
+    });
+  };
+
   const addToCurrentlyReading = (mangaId) => {
     dispatch({
       type: LIBRARY_ACTIONS.ADD_TO_CURRENTLY_READING,
@@ -329,6 +346,7 @@ export function LibraryProvider({ children }) {
   const value = {
     library,
     addManga,
+    updateMangaData,
     removeManga,
     updateProgress,
     updateLastRead,

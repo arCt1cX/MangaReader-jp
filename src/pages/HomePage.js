@@ -8,9 +8,10 @@ import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { getRecentlyRead, library } = useLibrary();
+  const { getRecentlyRead, updateMangaData } = useLibrary();
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
+  const [refreshing, setRefreshing] = useState(false);
 
   // Helper function to check if manga is completed (all available chapters read)
   const getMangaStatus = (manga) => {
@@ -31,20 +32,8 @@ const HomePage = () => {
         parseFloat(ch.number || ch.id || 0)
       ));
       
-      // Check how old the cached chapter data is
-      const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
-      const isDataRecent = timeSinceLastRead < 24 * 60 * 60 * 1000; // Within 24 hours
-      
-      // If this is a forced refresh, don't show "up to date" unless very recent
-      const isRefreshForced = manga._refreshForced;
-      const effectivelyRecent = isRefreshForced ? 
-        (timeSinceLastRead < 60 * 60 * 1000) : // Within 1 hour for forced refresh
-        isDataRecent; // Within 24 hours normally
-      
-      // Only mark as "up to date" if:
-      // 1. User has read all available chapters OR read the highest available chapter
-      // 2. AND the data is recent (and not forced refresh, or very recent if forced)
-      if ((readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) && effectivelyRecent) {
+      // Check if user has read all available chapters OR read the highest available chapter
+      if (readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) {
         return { status: 'completed', message: 'Up to date' };
       }
     }
@@ -54,9 +43,9 @@ const HomePage = () => {
     const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
     const isRecentlyRead = timeSinceLastRead < 7 * 24 * 60 * 60 * 1000; // Within 7 days
     
-    // For manga without complete chapter list, be very conservative about showing "up to date"
-    // Only show it if they read very recently (within 6 hours) and have many chapters read
-    if (timeSinceLastRead < 6 * 60 * 60 * 1000 && manga.chaptersRead.length >= 15) {
+    // If user has read many chapters recently, they might be caught up
+    if (isRecentlyRead && manga.chaptersRead.length >= 10) {
+      // For manga without complete chapter list, assume caught up if recent and many chapters read
       if (!manga.chapters || manga.chapters.length === 0) {
         return { status: 'completed', message: 'Up to date' };
       }
@@ -72,7 +61,7 @@ const HomePage = () => {
     // Load recent manga
     const recent = getRecentlyRead(5);
     setRecentManga(recent);
-  }, [getRecentlyRead, library]); // Added library as dependency to refresh when it changes
+  }, [getRecentlyRead]);
 
   const checkBackendStatus = async () => {
     try {
@@ -97,28 +86,68 @@ const HomePage = () => {
     });
   };
 
-  const refreshRecentManga = () => {
-    // Force refresh recent manga data and clear stale "up to date" status
-    const recent = getRecentlyRead(5);
+  const refreshMangaUpdates = async () => {
+    if (refreshing) return;
     
-    // For each manga, if it's been more than 1 hour since last read,
-    // we'll force it to not show "up to date" by temporarily treating it as if
-    // the chapter data is not recent
-    const refreshedRecent = recent.map(manga => {
-      const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
-      const oneHour = 60 * 60 * 1000;
+    setRefreshing(true);
+    console.log('🔄 Starting manga refresh check...');
+    
+    try {
+      // Get mangas that show "Up to date"
+      const upToDateMangas = recentManga.filter(manga => {
+        const status = getMangaStatus(manga);
+        return status.status === 'completed';
+      });
       
-      if (timeSinceLastRead > oneHour) {
-        // Create a copy with adjusted lastRead to force re-evaluation
-        return {
-          ...manga,
-          _refreshForced: true // Flag to indicate this was refreshed
-        };
+      console.log(`📚 Found ${upToDateMangas.length} up-to-date mangas to check:`, upToDateMangas.map(m => m.title));
+      
+      // Check each manga for new chapters
+      for (const manga of upToDateMangas) {
+        try {
+          console.log(`🔍 Checking ${manga.title} for new chapters...`);
+          const response = await apiService.getMangaInfo(manga.site, manga.id);
+          
+          if (response.success && response.data.chapters) {
+            const newChapters = response.data.chapters;
+            const oldChapters = manga.chapters || [];
+            
+            // Check if there are new chapters
+            const newChapterCount = newChapters.length;
+            const oldChapterCount = oldChapters.length;
+            
+            if (newChapterCount > oldChapterCount) {
+              console.log(`✨ Found ${newChapterCount - oldChapterCount} new chapters for ${manga.title}!`);
+              
+              // Update the manga in library with new chapter data
+              const updatedManga = {
+                ...manga,
+                chapters: newChapters,
+                // Keep all other library data intact
+              };
+              
+              // Update existing manga data (this preserves read status)
+              updateMangaData(updatedManga);
+              
+            } else {
+              console.log(`📖 No new chapters found for ${manga.title}`);
+            }
+          }
+        } catch (error) {
+          console.error(`❌ Error checking ${manga.title}:`, error);
+        }
       }
-      return manga;
-    });
-    
-    setRecentManga(refreshedRecent);
+      
+      // Refresh the recent manga list to show updated status
+      const refreshedRecent = getRecentlyRead(5);
+      setRecentManga(refreshedRecent);
+      
+      console.log('✅ Manga refresh check completed!');
+      
+    } catch (error) {
+      console.error('❌ Error during manga refresh:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   return (
@@ -202,12 +231,20 @@ const HomePage = () => {
                 📖 Continue Reading
               </h2>
               <button
-                onClick={refreshRecentManga}
-                className="text-manga-accent hover:text-manga-text text-sm transition-colors flex items-center gap-1"
-                title="Refresh reading status"
+                onClick={refreshMangaUpdates}
+                disabled={refreshing}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  refreshing 
+                    ? 'bg-manga-light text-manga-text/50 cursor-not-allowed' 
+                    : 'bg-manga-accent hover:opacity-90 text-white'
+                }`}
               >
-                <Icon name="refresh" size={16} />
-                Refresh
+                <Icon 
+                  name="refresh" 
+                  size={16} 
+                  className={refreshing ? 'animate-spin' : ''} 
+                />
+                {refreshing ? 'Checking...' : 'Check for Updates'}
               </button>
             </div>
             <div className="grid gap-4">
