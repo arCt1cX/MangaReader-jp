@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLibrary } from '../contexts/LibraryContext';
 import { DEFAULT_MANGA_SITES } from '../config/api';
 import apiService from '../services/apiService';
+import chapterCache from '../services/cacheService';
 import CachedImage from '../components/CachedImage';
 import Icon from '../components/Icon';
 
@@ -105,6 +106,14 @@ const HomePage = () => {
       for (const manga of upToDateMangas) {
         try {
           console.log(`🔍 Checking ${manga.title} for new chapters...`);
+          
+          // IMPORTANT: Clear cache for this manga to force fresh data from the site
+          const cacheKey = chapterCache.getMangaDetailsCacheKey(manga.site, manga.id);
+          if (chapterCache.cache.has(cacheKey)) {
+            chapterCache.cache.delete(cacheKey);
+            console.log(`🗑️ Cleared cache for ${manga.title} to force fresh data`);
+          }
+          
           const response = await apiService.getMangaInfo(manga.site, manga.id);
           
           if (response.success && response.data.chapters) {
