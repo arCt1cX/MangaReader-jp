@@ -35,10 +35,16 @@ const HomePage = () => {
       const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
       const isDataRecent = timeSinceLastRead < 24 * 60 * 60 * 1000; // Within 24 hours
       
+      // If this is a forced refresh, don't show "up to date" unless very recent
+      const isRefreshForced = manga._refreshForced;
+      const effectivelyRecent = isRefreshForced ? 
+        (timeSinceLastRead < 60 * 60 * 1000) : // Within 1 hour for forced refresh
+        isDataRecent; // Within 24 hours normally
+      
       // Only mark as "up to date" if:
       // 1. User has read all available chapters OR read the highest available chapter
-      // 2. AND the data is recent (within 24 hours) to avoid showing stale "up to date" status
-      if ((readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) && isDataRecent) {
+      // 2. AND the data is recent (and not forced refresh, or very recent if forced)
+      if ((readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) && effectivelyRecent) {
         return { status: 'completed', message: 'Up to date' };
       }
     }
@@ -92,9 +98,27 @@ const HomePage = () => {
   };
 
   const refreshRecentManga = () => {
-    // Force refresh recent manga data
+    // Force refresh recent manga data and clear stale "up to date" status
     const recent = getRecentlyRead(5);
-    setRecentManga(recent);
+    
+    // For each manga, if it's been more than 1 hour since last read,
+    // we'll force it to not show "up to date" by temporarily treating it as if
+    // the chapter data is not recent
+    const refreshedRecent = recent.map(manga => {
+      const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
+      const oneHour = 60 * 60 * 1000;
+      
+      if (timeSinceLastRead > oneHour) {
+        // Create a copy with adjusted lastRead to force re-evaluation
+        return {
+          ...manga,
+          _refreshForced: true // Flag to indicate this was refreshed
+        };
+      }
+      return manga;
+    });
+    
+    setRecentManga(refreshedRecent);
   };
 
   return (
