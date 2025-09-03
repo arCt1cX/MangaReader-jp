@@ -8,6 +8,7 @@ const LibraryPage = () => {
   const { getLibraryArray, getCurrentlyReading, clearLibrary } = useLibrary();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('library');
+  const [sortBy, setSortBy] = useState('recent'); // 'recent', 'alphabetical', 'alphabetical-desc', 'lastRead'
   
   const library = getLibraryArray();
   const currentlyReading = getCurrentlyReading();
@@ -28,6 +29,34 @@ const LibraryPage = () => {
     }
   };
 
+  // Sort function for library
+  const getSortedLibrary = (mangaList) => {
+    const sorted = [...mangaList];
+    
+    switch (sortBy) {
+      case 'alphabetical':
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      case 'alphabetical-desc':
+        return sorted.sort((a, b) => b.title.localeCompare(a.title));
+      case 'lastRead':
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.lastRead || a.addedAt || 0);
+          const bDate = new Date(b.lastRead || b.addedAt || 0);
+          return bDate - aDate;
+        });
+      case 'recent':
+      default:
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.addedAt || 0);
+          const bDate = new Date(b.addedAt || 0);
+          return bDate - aDate;
+        });
+    }
+  };
+
+  const sortedLibrary = getSortedLibrary(library);
+  const sortedCurrentlyReading = getSortedLibrary(currentlyReading);
+
   return (
     <div className="min-h-screen bg-manga-dark pb-20">
       {/* Header */}
@@ -37,14 +66,37 @@ const LibraryPage = () => {
             <h1 className="text-3xl font-bold text-manga-text">
               📚 My Library
             </h1>
-            {library.length > 0 && (
-              <button
-                onClick={handleClearLibrary}
-                className="text-red-400 hover:text-red-300 text-sm underline"
-              >
-                Clear All
-              </button>
-            )}
+            <div className="flex items-center gap-4">
+              {/* Sort Dropdown */}
+              {library.length > 0 && (
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-manga-light text-manga-text border border-manga-light rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-manga-accent appearance-none cursor-pointer pr-8"
+                  >
+                    <option value="recent">Recently Added</option>
+                    <option value="alphabetical">A-Z</option>
+                    <option value="alphabetical-desc">Z-A</option>
+                    <option value="lastRead">Last Read</option>
+                  </select>
+                  <Icon 
+                    name="arrowDown" 
+                    size={12} 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-manga-text/70"
+                  />
+                </div>
+              )}
+              
+              {library.length > 0 && (
+                <button
+                  onClick={handleClearLibrary}
+                  className="text-red-400 hover:text-red-300 text-sm underline"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
           </div>
           
           {/* Tab Navigation */}
@@ -83,9 +135,9 @@ const LibraryPage = () => {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {activeTab === 'library' ? (
           // All Library Tab
-          library.length > 0 ? (
+          sortedLibrary.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {library.map((manga) => (
+              {sortedLibrary.map((manga) => (
                 <MangaCard
                   key={manga.id}
                   manga={manga}
@@ -116,9 +168,9 @@ const LibraryPage = () => {
           )
         ) : (
           // Currently Reading Tab
-          currentlyReading.length > 0 ? (
+          sortedCurrentlyReading.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {currentlyReading.map((manga) => (
+              {sortedCurrentlyReading.map((manga) => (
                 <MangaCard
                   key={manga.id}
                   manga={manga}

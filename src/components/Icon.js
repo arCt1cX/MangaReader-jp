@@ -132,6 +132,12 @@ const Icon = ({ name, size = 20, className = '', color = 'currentColor' }) => {
         <polyline points="1,20 1,14 7,14"/>
         <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
       </svg>
+    ),
+    
+    arrowDown: (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="6,9 12,15 18,9"/>
+      </svg>
     )
   };
 
