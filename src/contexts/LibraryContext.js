@@ -22,9 +22,21 @@ function libraryReducer(state, action) {
       return action.payload;
 
     case LIBRARY_ACTIONS.ADD_MANGA:
+      const existingManga = state[action.payload.id];
       return {
         ...state,
-        [action.payload.id]: {
+        [action.payload.id]: existingManga ? {
+          // Preserve reading progress but update manga details (including chapters)
+          ...action.payload,
+          addedAt: existingManga.addedAt,
+          lastRead: existingManga.lastRead,
+          currentChapter: existingManga.currentChapter,
+          currentPage: existingManga.currentPage,
+          totalPages: existingManga.totalPages,
+          chaptersRead: existingManga.chaptersRead || [],
+          isCurrentlyReading: existingManga.isCurrentlyReading
+        } : {
+          // New manga - initialize with defaults
           ...action.payload,
           addedAt: new Date().toISOString(),
           lastRead: null,

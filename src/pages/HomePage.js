@@ -8,7 +8,7 @@ import Icon from '../components/Icon';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { getRecentlyRead } = useLibrary();
+  const { getRecentlyRead, library } = useLibrary();
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
 
@@ -31,8 +31,14 @@ const HomePage = () => {
         parseFloat(ch.number || ch.id || 0)
       ));
       
-      // Check if user has read all available chapters OR read the highest available chapter
-      if (readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) {
+      // Check how old the cached chapter data is
+      const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
+      const isDataRecent = timeSinceLastRead < 24 * 60 * 60 * 1000; // Within 24 hours
+      
+      // Only mark as "up to date" if:
+      // 1. User has read all available chapters OR read the highest available chapter
+      // 2. AND the data is recent (within 24 hours) to avoid showing stale "up to date" status
+      if ((readChapters >= totalChapters || highestReadChapter >= highestAvailableChapter) && isDataRecent) {
         return { status: 'completed', message: 'Up to date' };
       }
     }
@@ -42,9 +48,9 @@ const HomePage = () => {
     const timeSinceLastRead = Date.now() - new Date(manga.lastRead).getTime();
     const isRecentlyRead = timeSinceLastRead < 7 * 24 * 60 * 60 * 1000; // Within 7 days
     
-    // If user has read many chapters recently, they might be caught up
-    if (isRecentlyRead && manga.chaptersRead.length >= 10) {
-      // For manga without complete chapter list, assume caught up if recent and many chapters read
+    // For manga without complete chapter list, be very conservative about showing "up to date"
+    // Only show it if they read very recently (within 6 hours) and have many chapters read
+    if (timeSinceLastRead < 6 * 60 * 60 * 1000 && manga.chaptersRead.length >= 15) {
       if (!manga.chapters || manga.chapters.length === 0) {
         return { status: 'completed', message: 'Up to date' };
       }
@@ -60,7 +66,7 @@ const HomePage = () => {
     // Load recent manga
     const recent = getRecentlyRead(5);
     setRecentManga(recent);
-  }, [getRecentlyRead]);
+  }, [getRecentlyRead, library]); // Added library as dependency to refresh when it changes
 
   const checkBackendStatus = async () => {
     try {
@@ -83,6 +89,12 @@ const HomePage = () => {
         from: '/' // Pass home page as referrer
       }
     });
+  };
+
+  const refreshRecentManga = () => {
+    // Force refresh recent manga data
+    const recent = getRecentlyRead(5);
+    setRecentManga(recent);
   };
 
   return (
@@ -161,9 +173,19 @@ const HomePage = () => {
         {/* Recent Manga */}
         {recentManga.length > 0 && (
           <section>
-            <h2 className="text-xl font-semibold text-manga-text mb-4">
-              📖 Continue Reading
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-manga-text">
+                📖 Continue Reading
+              </h2>
+              <button
+                onClick={refreshRecentManga}
+                className="text-manga-accent hover:text-manga-text text-sm transition-colors flex items-center gap-1"
+                title="Refresh reading status"
+              >
+                <Icon name="refresh" size={16} />
+                Refresh
+              </button>
+            </div>
             <div className="grid gap-4">
               {recentManga.map((manga) => (
                 <div
