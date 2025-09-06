@@ -435,17 +435,6 @@ const ReaderPage = () => {
       // Start countdown
       const delay = settings.autoAdvance.delay;
       setAutoAdvanceCountdown(delay);
-      
-      autoAdvanceIntervalRef.current = setInterval(() => {
-        setAutoAdvanceCountdown(prev => {
-          if (prev <= 1) {
-            // Auto-advance to next chapter
-            goToNextChapter();
-            return null;
-          }
-          return prev - 1;
-        });
-      }, 1000);
     } else if (!isChapterComplete || !nextChapter || !settings.autoAdvance.enabled) {
       // Clear countdown if conditions are no longer met
       if (autoAdvanceIntervalRef.current) {
@@ -454,19 +443,34 @@ const ReaderPage = () => {
       }
       setAutoAdvanceCountdown(null);
     }
+  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter]);
+
+  // Separate effect for countdown timer
+  useEffect(() => {
+    if (autoAdvanceCountdown !== null && autoAdvanceCountdown > 0) {
+      autoAdvanceIntervalRef.current = setTimeout(() => {
+        if (autoAdvanceCountdown === 1) {
+          // Auto-advance to next chapter
+          goToNextChapter();
+          setAutoAdvanceCountdown(null);
+        } else {
+          setAutoAdvanceCountdown(prev => prev - 1);
+        }
+      }, 1000);
+    }
 
     return () => {
       if (autoAdvanceIntervalRef.current) {
-        clearInterval(autoAdvanceIntervalRef.current);
+        clearTimeout(autoAdvanceIntervalRef.current);
         autoAdvanceIntervalRef.current = null;
       }
     };
-  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter, autoAdvanceCountdown, goToNextChapter]);
+  }, [autoAdvanceCountdown, goToNextChapter]);
 
   // Cancel auto-advance function
   const cancelAutoAdvance = () => {
     if (autoAdvanceIntervalRef.current) {
-      clearInterval(autoAdvanceIntervalRef.current);
+      clearTimeout(autoAdvanceIntervalRef.current);
       autoAdvanceIntervalRef.current = null;
     }
     setAutoAdvanceCountdown(null);
