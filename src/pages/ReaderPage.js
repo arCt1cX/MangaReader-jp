@@ -25,6 +25,7 @@ const ReaderPage = () => {
   // Auto-advance state
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
   const autoAdvanceIntervalRef = useRef(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
   
   // Japanese text analysis states
   const [showJapaneseOverlay, setShowJapaneseOverlay] = useState(false);
@@ -425,11 +426,47 @@ const ReaderPage = () => {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
+  // Scroll position detection for scroll mode
+  useEffect(() => {
+    const handleScroll = () => {
+      if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        
+        // Check if user is near the bottom (within 100px)
+        const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+        setIsAtBottom(isNearBottom);
+      }
+    };
+
+    if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
+      window.addEventListener('scroll', handleScroll);
+      // Check initial position
+      handleScroll();
+    } else {
+      setIsAtBottom(false);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [settings.readingMode, contentFormat]);
+
   // Auto-advance countdown effect
   useEffect(() => {
-    const isChapterComplete = (contentFormat === 'manhwa' || settings.readingMode === 'scroll') || 
-      (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
-      (settings.readingMode === 'double' && currentPage >= pages.length - 2);
+    let isChapterComplete = false;
+    
+    if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
+      // For scroll mode, check if user scrolled to bottom
+      isChapterComplete = isAtBottom;
+    } else if (settings.readingMode === 'single') {
+      // For single page mode, check if on last page
+      isChapterComplete = currentPage === pages.length - 1;
+    } else if (settings.readingMode === 'double') {
+      // For double page mode, check if on last or second-to-last page
+      isChapterComplete = currentPage >= pages.length - 2;
+    }
     
     if (isChapterComplete && nextChapter && settings.autoAdvance.enabled && autoAdvanceCountdown === null) {
       // Start countdown
@@ -438,12 +475,12 @@ const ReaderPage = () => {
     } else if (!isChapterComplete || !nextChapter || !settings.autoAdvance.enabled) {
       // Clear countdown if conditions are no longer met
       if (autoAdvanceIntervalRef.current) {
-        clearInterval(autoAdvanceIntervalRef.current);
+        clearTimeout(autoAdvanceIntervalRef.current);
         autoAdvanceIntervalRef.current = null;
       }
       setAutoAdvanceCountdown(null);
     }
-  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter]);
+  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter, isAtBottom]);
 
   // Separate effect for countdown timer
   useEffect(() => {
@@ -726,7 +763,7 @@ const ReaderPage = () => {
       </div>
 
       {/* Next Chapter Button - Show at end of chapter */}
-      {((contentFormat === 'manhwa' || settings.readingMode === 'scroll') || 
+      {(((contentFormat === 'manhwa' || settings.readingMode === 'scroll') && isAtBottom) || 
         (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
         (settings.readingMode === 'double' && currentPage >= pages.length - 2)
        ) && (
