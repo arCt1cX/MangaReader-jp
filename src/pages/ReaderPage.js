@@ -22,12 +22,6 @@ const ReaderPage = () => {
   const [showUI, setShowUI] = useState(true);
   const [contentFormat, setContentFormat] = useState(null); // 'manga' or 'manhwa'
   
-  // Auto-advance state
-  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
-  const [isAtBottom, setIsAtBottom] = useState(false);
-  const bottomTimerRef = useRef(null);
-  const countdownTimerRef = useRef(null);
-  
   // Japanese text analysis states
   const [showJapaneseOverlay, setShowJapaneseOverlay] = useState(false);
   const [currentImageElement, setCurrentImageElement] = useState(null);
@@ -427,122 +421,6 @@ const ReaderPage = () => {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-  // Scroll position detection for scroll mode
-  useEffect(() => {
-    const handleScroll = () => {
-      if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight;
-        const clientHeight = document.documentElement.clientHeight;
-        
-        // Check if user is near the bottom (within 100px)
-        const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
-        setIsAtBottom(isNearBottom);
-      }
-    };
-
-    if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
-      window.addEventListener('scroll', handleScroll);
-      handleScroll(); // Check initial position
-    } else {
-      setIsAtBottom(false);
-    }
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [settings.readingMode, contentFormat]);
-
-  // Auto-advance logic
-  useEffect(() => {
-    // Clear any existing timers
-    if (bottomTimerRef.current) {
-      clearTimeout(bottomTimerRef.current);
-      bottomTimerRef.current = null;
-    }
-    if (countdownTimerRef.current) {
-      clearTimeout(countdownTimerRef.current);
-      countdownTimerRef.current = null;
-    }
-    
-    // Check if auto-advance is enabled and we have a next chapter
-    if (!settings.autoAdvance.enabled || !nextChapter) {
-      setAutoAdvanceCountdown(null);
-      return;
-    }
-
-    // Determine if chapter is complete
-    let shouldStartCountdown = false;
-    
-    if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
-      // For scroll mode, start timer when at bottom
-      if (isAtBottom) {
-        bottomTimerRef.current = setTimeout(() => {
-          goToNextChapter();
-        }, settings.autoAdvance.delay * 1000);
-        setAutoAdvanceCountdown(settings.autoAdvance.delay);
-        
-        // Update countdown every second
-        let countdown = settings.autoAdvance.delay;
-        const updateCountdown = () => {
-          countdown--;
-          if (countdown > 0) {
-            setAutoAdvanceCountdown(countdown);
-            countdownTimerRef.current = setTimeout(updateCountdown, 1000);
-          }
-        };
-        countdownTimerRef.current = setTimeout(updateCountdown, 1000);
-      } else {
-        setAutoAdvanceCountdown(null);
-      }
-    } else {
-      // For page modes
-      const isOnLastPage = (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
-                          (settings.readingMode === 'double' && currentPage >= pages.length - 2);
-      
-      if (isOnLastPage) {
-        setAutoAdvanceCountdown(settings.autoAdvance.delay);
-        
-        // Start countdown
-        let countdown = settings.autoAdvance.delay;
-        const updateCountdown = () => {
-          countdown--;
-          if (countdown > 0) {
-            setAutoAdvanceCountdown(countdown);
-            countdownTimerRef.current = setTimeout(updateCountdown, 1000);
-          } else {
-            goToNextChapter();
-          }
-        };
-        countdownTimerRef.current = setTimeout(updateCountdown, 1000);
-      } else {
-        setAutoAdvanceCountdown(null);
-      }
-    }
-
-    return () => {
-      if (bottomTimerRef.current) {
-        clearTimeout(bottomTimerRef.current);
-      }
-      if (countdownTimerRef.current) {
-        clearTimeout(countdownTimerRef.current);
-      }
-    };
-  }, [settings.autoAdvance, nextChapter, isAtBottom, currentPage, pages.length, settings.readingMode, contentFormat, goToNextChapter]);
-
-  // Cancel auto-advance function
-  const cancelAutoAdvance = () => {
-    if (bottomTimerRef.current) {
-      clearTimeout(bottomTimerRef.current);
-      bottomTimerRef.current = null;
-    }
-    if (countdownTimerRef.current) {
-      clearTimeout(countdownTimerRef.current);
-      countdownTimerRef.current = null;
-    }
-    setAutoAdvanceCountdown(null);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -793,7 +671,7 @@ const ReaderPage = () => {
       </div>
 
       {/* Next Chapter Button - Show at end of chapter */}
-      {(((contentFormat === 'manhwa' || settings.readingMode === 'scroll') && isAtBottom) || 
+      {((contentFormat === 'manhwa' || settings.readingMode === 'scroll') || 
         (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
         (settings.readingMode === 'double' && currentPage >= pages.length - 2)
        ) && (
@@ -806,27 +684,6 @@ const ReaderPage = () => {
                 'You\'ve reached the end of this chapter'
               }
             </p>
-            
-            {/* Auto-advance countdown */}
-            {autoAdvanceCountdown !== null && nextChapter && (
-              <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-                <p className="text-blue-200 text-sm mb-2">
-                  {(settings.readingMode === 'scroll' || contentFormat === 'manhwa') 
-                    ? 'Auto-advancing to next chapter in:'
-                    : 'Auto-advancing to next chapter in:'
-                  }
-                </p>
-                <div className="text-2xl font-bold text-blue-400 mb-3">
-                  {autoAdvanceCountdown}
-                </div>
-                <button
-                  onClick={cancelAutoAdvance}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-                >
-                  Cancel Auto-Advance
-                </button>
-              </div>
-            )}
           </div>
           
           <div className="flex gap-4">
