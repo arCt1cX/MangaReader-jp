@@ -26,6 +26,8 @@ const ReaderPage = () => {
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
   const autoAdvanceIntervalRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [timeAtBottom, setTimeAtBottom] = useState(0);
+  const timeAtBottomRef = useRef(0);
   
   // Japanese text analysis states
   const [showJapaneseOverlay, setShowJapaneseOverlay] = useState(false);
@@ -436,7 +438,18 @@ const ReaderPage = () => {
         
         // Check if user is near the bottom (within 100px)
         const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+        const wasAtBottom = isAtBottom;
         setIsAtBottom(isNearBottom);
+        
+        if (isNearBottom && !wasAtBottom) {
+          // Just reached bottom, start timing
+          timeAtBottomRef.current = 0;
+          setTimeAtBottom(0);
+        } else if (!isNearBottom && wasAtBottom) {
+          // Left bottom, reset timing
+          timeAtBottomRef.current = 0;
+          setTimeAtBottom(0);
+        }
       }
     };
 
@@ -446,20 +459,44 @@ const ReaderPage = () => {
       handleScroll();
     } else {
       setIsAtBottom(false);
+      setTimeAtBottom(0);
+      timeAtBottomRef.current = 0;
     }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [settings.readingMode, contentFormat]);
+  }, [settings.readingMode, contentFormat, isAtBottom]);
+
+  // Timer for tracking time spent at bottom
+  useEffect(() => {
+    let interval = null;
+    
+    if (isAtBottom && nextChapter && settings.autoAdvance.enabled) {
+      interval = setInterval(() => {
+        timeAtBottomRef.current += 1;
+        setTimeAtBottom(timeAtBottomRef.current);
+      }, 1000);
+    } else {
+      // Reset timer if not at bottom or conditions not met
+      timeAtBottomRef.current = 0;
+      setTimeAtBottom(0);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isAtBottom, nextChapter, settings.autoAdvance.enabled]);
 
   // Auto-advance countdown effect
   useEffect(() => {
     let isChapterComplete = false;
     
     if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
-      // For scroll mode, check if user scrolled to bottom
-      isChapterComplete = isAtBottom;
+      // For scroll mode, check if user has been at bottom for required time
+      isChapterComplete = isAtBottom && timeAtBottom >= settings.autoAdvance.delay;
     } else if (settings.readingMode === 'single') {
       // For single page mode, check if on last page
       isChapterComplete = currentPage === pages.length - 1;
@@ -468,10 +505,14 @@ const ReaderPage = () => {
       isChapterComplete = currentPage >= pages.length - 2;
     }
     
-    if (isChapterComplete && nextChapter && settings.autoAdvance.enabled && autoAdvanceCountdown === null) {
-      // Start countdown
-      const delay = settings.autoAdvance.delay;
-      setAutoAdvanceCountdown(delay);
+    if (isChapterComplete && nextChapter && settings.autoAdvance.enabled) {
+      // Auto-advance immediately for scroll mode (already waited), start countdown for page modes
+      if (settings.readingMode === 'scroll' || contentFormat === 'manhwa') {
+        goToNextChapter();
+      } else if (autoAdvanceCountdown === null) {
+        const delay = settings.autoAdvance.delay;
+        setAutoAdvanceCountdown(delay);
+      }
     } else if (!isChapterComplete || !nextChapter || !settings.autoAdvance.enabled) {
       // Clear countdown if conditions are no longer met
       if (autoAdvanceIntervalRef.current) {
@@ -480,7 +521,7 @@ const ReaderPage = () => {
       }
       setAutoAdvanceCountdown(null);
     }
-  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter, isAtBottom]);
+  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter, isAtBottom, timeAtBottom, autoAdvanceCountdown, goToNextChapter]);
 
   // Separate effect for countdown timer
   useEffect(() => {
@@ -511,6 +552,9 @@ const ReaderPage = () => {
       autoAdvanceIntervalRef.current = null;
     }
     setAutoAdvanceCountdown(null);
+    // Reset time at bottom
+    timeAtBottomRef.current = 0;
+    setTimeAtBottom(0);
   };
 
   if (loading) {
@@ -778,14 +822,33 @@ const ReaderPage = () => {
             </p>
             
             {/* Auto-advance countdown */}
-            {autoAdvanceCountdown !== null && nextChapter && (
+            {(autoAdvanceCountdown !== null || (isAtBottom && settings.autoAdvance.enabled && (settings.readingMode === 'scroll' || contentFormat === 'manhwa'))) && nextChapter && (
               <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-                <p className="text-blue-200 text-sm mb-2">
-                  Auto-advancing to next chapter in:
-                </p>
-                <div className="text-2xl font-bold text-blue-400 mb-3">
-                  {autoAdvanceCountdown}
-                </div>
+                {(settings.readingMode === 'scroll' || contentFormat === 'manhwa') ? (
+                  <>
+                    <p className="text-blue-200 text-sm mb-2">
+                      Stay at bottom for {settings.autoAdvance.delay} seconds to auto-advance:
+                    </p>
+                    <div className="text-2xl font-bold text-blue-400 mb-3">
+                      {Math.max(0, settings.autoAdvance.delay - timeAtBottom)}
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${Math.min(100, (timeAtBottom / settings.autoAdvance.delay) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-blue-200 text-sm mb-2">
+                      Auto-advancing to next chapter in:
+                    </p>
+                    <div className="text-2xl font-bold text-blue-400 mb-3">
+                      {autoAdvanceCountdown}
+                    </div>
+                  </>
+                )}
                 <button
                   onClick={cancelAutoAdvance}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
