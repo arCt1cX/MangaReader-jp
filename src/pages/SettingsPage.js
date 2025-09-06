@@ -10,6 +10,7 @@ const SettingsPage = () => {
     updatePageTransition,
     updatePageSpacing,
     updateZoomSettings,
+    updateAutoAdvance,
     updateTheme,
     resetSettings,
     getCacheStats,
@@ -134,6 +135,57 @@ const SettingsPage = () => {
                     {transition.label}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Auto Advance */}
+            <div>
+              <label className="block text-manga-text font-medium mb-2">
+                Auto Advance to Next Chapter
+              </label>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-manga-text">Enable auto advance</span>
+                    <p className="text-xs text-manga-text/70">Automatically go to next chapter after finishing current one</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.autoAdvance.enabled}
+                      onChange={(e) => updateAutoAdvance({ enabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-manga-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-manga-accent"></div>
+                  </label>
+                </div>
+
+                {settings.autoAdvance.enabled && (
+                  <div>
+                    <label className="block text-sm text-manga-text/70 mb-2">
+                      Countdown delay: {settings.autoAdvance.delay} second{settings.autoAdvance.delay !== 1 ? 's' : ''}
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: 1, label: '1 Second' },
+                        { value: 2, label: '2 Seconds' },
+                        { value: 3, label: '3 Seconds' }
+                      ].map((delay) => (
+                        <button
+                          key={delay.value}
+                          onClick={() => updateAutoAdvance({ delay: delay.value })}
+                          className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                            settings.autoAdvance.delay === delay.value
+                              ? 'bg-manga-accent border-manga-accent text-white'
+                              : 'bg-manga-light border-manga-light text-manga-text hover:bg-manga-light/70'
+                          }`}
+                        >
+                          {delay.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

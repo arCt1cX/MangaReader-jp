@@ -14,6 +14,7 @@ const SETTINGS_ACTIONS = {
   UPDATE_ZOOM_SETTINGS: 'UPDATE_ZOOM_SETTINGS',
   UPDATE_CUSTOM_SITES: 'UPDATE_CUSTOM_SITES',
   UPDATE_THEME: 'UPDATE_THEME',
+  UPDATE_AUTO_ADVANCE: 'UPDATE_AUTO_ADVANCE',
   RESET_SETTINGS: 'RESET_SETTINGS'
 };
 
@@ -43,6 +44,10 @@ const DEFAULT_SETTINGS = {
       right: 30,
       center: 40
     }
+  },
+  autoAdvance: {
+    enabled: false,
+    delay: 2 // seconds (1, 2, or 3)
   },
   customSites: [],
   theme: 'standard', // 'standard', 'dark', 'light', 'amoled'
@@ -110,6 +115,15 @@ function settingsReducer(state, action) {
       return {
         ...state,
         theme: action.payload
+      };
+
+    case SETTINGS_ACTIONS.UPDATE_AUTO_ADVANCE:
+      return {
+        ...state,
+        autoAdvance: {
+          ...state.autoAdvance,
+          ...action.payload
+        }
       };
 
     case SETTINGS_ACTIONS.RESET_SETTINGS:
@@ -205,6 +219,13 @@ export function SettingsProvider({ children }) {
     });
   };
 
+  const updateAutoAdvance = (autoAdvanceSettings) => {
+    dispatch({
+      type: SETTINGS_ACTIONS.UPDATE_AUTO_ADVANCE,
+      payload: autoAdvanceSettings
+    });
+  };
+
   const resetSettings = () => {
     dispatch({
       type: SETTINGS_ACTIONS.RESET_SETTINGS
@@ -230,6 +251,7 @@ export function SettingsProvider({ children }) {
     updateZoomSettings,
     updateCustomSites,
     updateTheme,
+    updateAutoAdvance,
     resetSettings,
     getCacheStats,
     clearCache

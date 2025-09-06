@@ -22,6 +22,10 @@ const ReaderPage = () => {
   const [showUI, setShowUI] = useState(true);
   const [contentFormat, setContentFormat] = useState(null); // 'manga' or 'manhwa'
   
+  // Auto-advance state
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(null);
+  const autoAdvanceIntervalRef = useRef(null);
+  
   // Japanese text analysis states
   const [showJapaneseOverlay, setShowJapaneseOverlay] = useState(false);
   const [currentImageElement, setCurrentImageElement] = useState(null);
@@ -421,6 +425,53 @@ const ReaderPage = () => {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
+  // Auto-advance countdown effect
+  useEffect(() => {
+    const isChapterComplete = (contentFormat === 'manhwa' || settings.readingMode === 'scroll') || 
+      (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
+      (settings.readingMode === 'double' && currentPage >= pages.length - 2);
+    
+    if (isChapterComplete && nextChapter && settings.autoAdvance.enabled && autoAdvanceCountdown === null) {
+      // Start countdown
+      const delay = settings.autoAdvance.delay;
+      setAutoAdvanceCountdown(delay);
+      
+      autoAdvanceIntervalRef.current = setInterval(() => {
+        setAutoAdvanceCountdown(prev => {
+          if (prev <= 1) {
+            // Auto-advance to next chapter
+            goToNextChapter();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (!isChapterComplete || !nextChapter || !settings.autoAdvance.enabled) {
+      // Clear countdown if conditions are no longer met
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current);
+        autoAdvanceIntervalRef.current = null;
+      }
+      setAutoAdvanceCountdown(null);
+    }
+
+    return () => {
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current);
+        autoAdvanceIntervalRef.current = null;
+      }
+    };
+  }, [contentFormat, settings.readingMode, settings.autoAdvance, currentPage, pages.length, nextChapter, autoAdvanceCountdown, goToNextChapter]);
+
+  // Cancel auto-advance function
+  const cancelAutoAdvance = () => {
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current);
+      autoAdvanceIntervalRef.current = null;
+    }
+    setAutoAdvanceCountdown(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -684,6 +735,24 @@ const ReaderPage = () => {
                 'You\'ve reached the end of this chapter'
               }
             </p>
+            
+            {/* Auto-advance countdown */}
+            {autoAdvanceCountdown !== null && nextChapter && (
+              <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/30 rounded-lg">
+                <p className="text-blue-200 text-sm mb-2">
+                  Auto-advancing to next chapter in:
+                </p>
+                <div className="text-2xl font-bold text-blue-400 mb-3">
+                  {autoAdvanceCountdown}
+                </div>
+                <button
+                  onClick={cancelAutoAdvance}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                >
+                  Cancel Auto-Advance
+                </button>
+              </div>
+            )}
           </div>
           
           <div className="flex gap-4">
