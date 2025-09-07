@@ -35,6 +35,7 @@ const ReaderPage = () => {
   const [showAutoAdvance, setShowAutoAdvance] = useState(false);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = useState(0);
   const autoAdvanceIntervalRef = useRef(null);
+  const nextChapterButtonRef = useRef(null);
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
@@ -150,7 +151,7 @@ const ReaderPage = () => {
 
   // Auto-advance functions
   const startAutoAdvanceTimer = useCallback(() => {
-    if (!settings.navigation.autoAdvance.enabled || !nextChapter) return;
+    if (!settings.navigation?.autoAdvance?.enabled || !nextChapter) return;
     
     setShowAutoAdvance(true);
     setAutoAdvanceTimer(settings.navigation.autoAdvance.delay);
@@ -166,7 +167,7 @@ const ReaderPage = () => {
         return prev - 1;
       });
     }, 1000);
-  }, [settings.navigation.autoAdvance, nextChapter, goToNextChapter]);
+  }, [settings.navigation?.autoAdvance, nextChapter, goToNextChapter]);
 
   const stopAutoAdvanceTimer = useCallback(() => {
     if (autoAdvanceIntervalRef.current) {
@@ -281,112 +282,35 @@ const ReaderPage = () => {
     }
   }, [chapterData, mangaData, markChapterRead, markPreviousChaptersRead, isMangaInLibrary, chapter]);
 
-  // Auto-advance: Detect when user reaches end of chapter
+  // Auto-advance: Use Intersection Observer to detect when next chapter button is visible
   useEffect(() => {
-    // Don't trigger if still loading or no pages loaded yet
-    if (loading || pages.length === 0) return;
-    
-    let isAtEnd = false;
-    
-    if (settings.readingMode === 'single') {
-      isAtEnd = currentPage === pages.length - 1;
-    } else if (settings.readingMode === 'double') {
-      isAtEnd = currentPage >= pages.length - 2;
-    }
-    // Note: For scroll mode, we handle this in a separate scroll event listener below
-
-    if (isAtEnd && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
-      startAutoAdvanceTimer();
-    }
-  }, [currentPage, pages.length, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer, loading]);
-
-  // Auto-advance: Handle scroll mode detection
-  useEffect(() => {
-    if (loading || pages.length === 0 || !(contentFormat === 'manhwa' || settings.readingMode === 'scroll')) {
+    if (!settings.navigation?.autoAdvance?.enabled || !nextChapter || !nextChapterButtonRef.current) {
       return;
     }
 
-    const handleScrollEnd = () => {
-      // Multiple methods to detect bottom scroll for better mobile compatibility
-      const windowHeight = window.innerHeight;
-      const documentHeight = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.clientHeight,
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight
-      );
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      
-      // More generous threshold for mobile devices (200px instead of 100px)
-      const threshold = 200;
-      const isNearBottom = (scrollTop + windowHeight) >= (documentHeight - threshold);
-      
-      console.log('Scroll debug:', {
-        scrollTop,
-        windowHeight,
-        documentHeight,
-        distanceFromBottom: documentHeight - (scrollTop + windowHeight),
-        isNearBottom
-      });
-      
-      if (isNearBottom && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
-        console.log('🚀 Starting auto-advance timer (scroll mode)');
-        startAutoAdvanceTimer();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !showAutoAdvance) {
+          // Button is visible, start the timer
+          startAutoAdvanceTimer();
+        } else if (!entry.isIntersecting && showAutoAdvance) {
+          // Button is no longer visible, stop the timer
+          stopAutoAdvanceTimer();
+        }
+      },
+      {
+        threshold: 0.5, // Trigger when 50% of the button is visible
+        rootMargin: '0px'
       }
-    };
+    );
 
-    // Add scroll listener with debounce
-    let scrollTimeout;
-    const debouncedScrollEnd = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScrollEnd, 150);
-    };
+    observer.observe(nextChapterButtonRef.current);
 
-    window.addEventListener('scroll', debouncedScrollEnd);
-    // Also listen to touchend for mobile devices
-    window.addEventListener('touchend', debouncedScrollEnd);
-    
     return () => {
-      window.removeEventListener('scroll', debouncedScrollEnd);
-      window.removeEventListener('touchend', debouncedScrollEnd);
-      clearTimeout(scrollTimeout);
+      observer.disconnect();
     };
-  }, [loading, pages.length, contentFormat, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer]);
-
-  // Auto-advance: Handle scroll events to reset timer when scrolling away
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!showAutoAdvance) return;
-      
-      // Check if user is still at the bottom (more generous threshold for mobile)
-      const windowHeight = window.innerHeight;
-      const documentHeight = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.clientHeight,
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight
-      );
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      
-      const isNearBottom = (scrollTop + windowHeight) >= (documentHeight - 200);
-      
-      if (!isNearBottom) {
-        console.log('📱 User scrolled away from bottom, stopping auto-advance');
-        stopAutoAdvanceTimer();
-      }
-    };
-
-    if (showAutoAdvance && (contentFormat === 'manhwa' || settings.readingMode === 'scroll')) {
-      window.addEventListener('scroll', handleScroll);
-      window.addEventListener('touchmove', handleScroll);
-      return () => {
-        window.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('touchmove', handleScroll);
-      };
-    }
-  }, [showAutoAdvance, contentFormat, settings.readingMode, stopAutoAdvanceTimer]);
+  }, [settings.navigation?.autoAdvance?.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer, stopAutoAdvanceTimer]);
 
   // Auto-advance: Cleanup timer on unmount
   useEffect(() => {
@@ -846,11 +770,12 @@ const ReaderPage = () => {
             
             {nextChapter ? (
               <button
+                ref={nextChapterButtonRef}
                 onClick={goToNextChapter}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 relative overflow-hidden"
                 style={{
                   background: showAutoAdvance 
-                    ? `linear-gradient(to right, #1d4ed8 ${((settings.navigation.autoAdvance.delay - autoAdvanceTimer) / settings.navigation.autoAdvance.delay) * 100}%, #2563eb ${((settings.navigation.autoAdvance.delay - autoAdvanceTimer) / settings.navigation.autoAdvance.delay) * 100}%)`
+                    ? `linear-gradient(to right, #1d4ed8 ${((settings.navigation?.autoAdvance?.delay - autoAdvanceTimer) / settings.navigation?.autoAdvance?.delay) * 100}%, #2563eb ${((settings.navigation?.autoAdvance?.delay - autoAdvanceTimer) / settings.navigation?.autoAdvance?.delay) * 100}%)`
                     : undefined
                 }}
               >
