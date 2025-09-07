@@ -283,15 +283,50 @@ const ReaderPage = () => {
 
   // Auto-advance: Detect when user reaches end of chapter
   useEffect(() => {
-    const isAtEnd = 
-      (contentFormat === 'manhwa' || settings.readingMode === 'scroll') ||
-      (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
-      (settings.readingMode === 'double' && currentPage >= pages.length - 2);
+    // Don't trigger if still loading or no pages loaded yet
+    if (loading || pages.length === 0) return;
+    
+    let isAtEnd = false;
+    
+    if (settings.readingMode === 'single') {
+      isAtEnd = currentPage === pages.length - 1;
+    } else if (settings.readingMode === 'double') {
+      isAtEnd = currentPage >= pages.length - 2;
+    }
+    // Note: For scroll mode, we handle this in a separate scroll event listener below
 
     if (isAtEnd && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
       startAutoAdvanceTimer();
     }
-  }, [currentPage, pages.length, contentFormat, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer]);
+  }, [currentPage, pages.length, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer, loading]);
+
+  // Auto-advance: Handle scroll mode detection
+  useEffect(() => {
+    if (loading || pages.length === 0 || !(contentFormat === 'manhwa' || settings.readingMode === 'scroll')) {
+      return;
+    }
+
+    const handleScrollEnd = () => {
+      const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      
+      if (isNearBottom && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
+        startAutoAdvanceTimer();
+      }
+    };
+
+    // Add scroll listener with debounce
+    let scrollTimeout;
+    const debouncedScrollEnd = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScrollEnd, 150);
+    };
+
+    window.addEventListener('scroll', debouncedScrollEnd);
+    return () => {
+      window.removeEventListener('scroll', debouncedScrollEnd);
+      clearTimeout(scrollTimeout);
+    };
+  }, [loading, pages.length, contentFormat, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer]);
 
   // Auto-advance: Handle scroll events to reset timer when scrolling away
   useEffect(() => {
@@ -769,33 +804,15 @@ const ReaderPage = () => {
             </button>
             
             {nextChapter ? (
-              <div className="relative">
-                <button
-                  onClick={goToNextChapter}
-                  className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
-                    showAutoAdvance ? 'ring-4 ring-blue-400/50 animate-pulse' : ''
-                  }`}
-                >
-                  <span>Next: Chapter {nextChapter.number}</span>
-                  <span>→</span>
-                </button>
-                
-                {showAutoAdvance && (
-                  <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-lg text-sm font-medium border border-blue-400">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                      <span>Auto-advancing in {autoAdvanceTimer}s</span>
-                      <button 
-                        onClick={stopAutoAdvanceTimer}
-                        className="ml-2 text-gray-400 hover:text-white text-xs"
-                        title="Cancel auto-advance"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={goToNextChapter}
+                className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
+                  showAutoAdvance ? 'ring-4 ring-blue-400/50 animate-pulse' : ''
+                }`}
+              >
+                <span>Next: Chapter {nextChapter.number}</span>
+                <span>→</span>
+              </button>
             ) : (
               <div className="px-6 py-3 bg-gray-800 text-gray-400 rounded-lg">
                 No more chapters available
