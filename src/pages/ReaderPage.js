@@ -307,9 +307,31 @@ const ReaderPage = () => {
     }
 
     const handleScrollEnd = () => {
-      const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      // Multiple methods to detect bottom scroll for better mobile compatibility
+      const windowHeight = window.innerHeight;
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      
+      // More generous threshold for mobile devices (200px instead of 100px)
+      const threshold = 200;
+      const isNearBottom = (scrollTop + windowHeight) >= (documentHeight - threshold);
+      
+      console.log('Scroll debug:', {
+        scrollTop,
+        windowHeight,
+        documentHeight,
+        distanceFromBottom: documentHeight - (scrollTop + windowHeight),
+        isNearBottom
+      });
       
       if (isNearBottom && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
+        console.log('🚀 Starting auto-advance timer (scroll mode)');
         startAutoAdvanceTimer();
       }
     };
@@ -322,8 +344,12 @@ const ReaderPage = () => {
     };
 
     window.addEventListener('scroll', debouncedScrollEnd);
+    // Also listen to touchend for mobile devices
+    window.addEventListener('touchend', debouncedScrollEnd);
+    
     return () => {
       window.removeEventListener('scroll', debouncedScrollEnd);
+      window.removeEventListener('touchend', debouncedScrollEnd);
       clearTimeout(scrollTimeout);
     };
   }, [loading, pages.length, contentFormat, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer]);
@@ -333,17 +359,32 @@ const ReaderPage = () => {
     const handleScroll = () => {
       if (!showAutoAdvance) return;
       
-      // Check if user is still at the bottom (within 100px)
-      const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      // Check if user is still at the bottom (more generous threshold for mobile)
+      const windowHeight = window.innerHeight;
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      
+      const isNearBottom = (scrollTop + windowHeight) >= (documentHeight - 200);
       
       if (!isNearBottom) {
+        console.log('📱 User scrolled away from bottom, stopping auto-advance');
         stopAutoAdvanceTimer();
       }
     };
 
     if (showAutoAdvance && (contentFormat === 'manhwa' || settings.readingMode === 'scroll')) {
       window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
+      window.addEventListener('touchmove', handleScroll);
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('touchmove', handleScroll);
+      };
     }
   }, [showAutoAdvance, contentFormat, settings.readingMode, stopAutoAdvanceTimer]);
 
