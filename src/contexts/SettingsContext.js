@@ -42,6 +42,10 @@ const DEFAULT_SETTINGS = {
       left: 30, // percentage
       right: 30,
       center: 40
+    },
+    autoAdvance: {
+      enabled: false,
+      delay: 3 // seconds (1, 2, or 3)
     }
   },
   customSites: [],

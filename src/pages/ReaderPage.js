@@ -30,6 +30,11 @@ const ReaderPage = () => {
     text: '',
     position: { x: 0, y: 0 }
   });
+  
+  // Auto-advance timer states
+  const [showAutoAdvance, setShowAutoAdvance] = useState(false);
+  const [autoAdvanceTimer, setAutoAdvanceTimer] = useState(0);
+  const autoAdvanceIntervalRef = useRef(null);
 
   // Get chapter URL from navigation state if available
   const chapterUrl = location.state?.chapterUrl;
@@ -143,6 +148,35 @@ const ReaderPage = () => {
     });
   };
 
+  // Auto-advance functions
+  const startAutoAdvanceTimer = useCallback(() => {
+    if (!settings.navigation.autoAdvance.enabled || !nextChapter) return;
+    
+    setShowAutoAdvance(true);
+    setAutoAdvanceTimer(settings.navigation.autoAdvance.delay);
+    
+    autoAdvanceIntervalRef.current = setInterval(() => {
+      setAutoAdvanceTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(autoAdvanceIntervalRef.current);
+          setShowAutoAdvance(false);
+          goToNextChapter();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [settings.navigation.autoAdvance, nextChapter, goToNextChapter]);
+
+  const stopAutoAdvanceTimer = useCallback(() => {
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current);
+      autoAdvanceIntervalRef.current = null;
+    }
+    setShowAutoAdvance(false);
+    setAutoAdvanceTimer(0);
+  }, []);
+
   const loadChapterPages = useCallback(async () => {
     try {
       setLoading(true);
@@ -246,6 +280,46 @@ const ReaderPage = () => {
       }
     }
   }, [chapterData, mangaData, markChapterRead, markPreviousChaptersRead, isMangaInLibrary, chapter]);
+
+  // Auto-advance: Detect when user reaches end of chapter
+  useEffect(() => {
+    const isAtEnd = 
+      (contentFormat === 'manhwa' || settings.readingMode === 'scroll') ||
+      (settings.readingMode === 'single' && currentPage === pages.length - 1) ||
+      (settings.readingMode === 'double' && currentPage >= pages.length - 2);
+
+    if (isAtEnd && settings.navigation.autoAdvance.enabled && nextChapter && !showAutoAdvance) {
+      startAutoAdvanceTimer();
+    }
+  }, [currentPage, pages.length, contentFormat, settings.readingMode, settings.navigation.autoAdvance.enabled, nextChapter, showAutoAdvance, startAutoAdvanceTimer]);
+
+  // Auto-advance: Handle scroll events to reset timer when scrolling away
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!showAutoAdvance) return;
+      
+      // Check if user is still at the bottom (within 100px)
+      const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      
+      if (!isNearBottom) {
+        stopAutoAdvanceTimer();
+      }
+    };
+
+    if (showAutoAdvance && (contentFormat === 'manhwa' || settings.readingMode === 'scroll')) {
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [showAutoAdvance, contentFormat, settings.readingMode, stopAutoAdvanceTimer]);
+
+  // Auto-advance: Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current);
+      }
+    };
+  }, []);
 
   const goToNextPage = useCallback(() => {
     // Force scroll mode for manhwa content
@@ -695,13 +769,33 @@ const ReaderPage = () => {
             </button>
             
             {nextChapter ? (
-              <button
-                onClick={goToNextChapter}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
-              >
-                <span>Next: Chapter {nextChapter.number}</span>
-                <span>→</span>
-              </button>
+              <div className="relative">
+                <button
+                  onClick={goToNextChapter}
+                  className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
+                    showAutoAdvance ? 'ring-4 ring-blue-400/50 animate-pulse' : ''
+                  }`}
+                >
+                  <span>Next: Chapter {nextChapter.number}</span>
+                  <span>→</span>
+                </button>
+                
+                {showAutoAdvance && (
+                  <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-4 py-2 rounded-lg text-sm font-medium border border-blue-400">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Auto-advancing in {autoAdvanceTimer}s</span>
+                      <button 
+                        onClick={stopAutoAdvanceTimer}
+                        className="ml-2 text-gray-400 hover:text-white text-xs"
+                        title="Cancel auto-advance"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="px-6 py-3 bg-gray-800 text-gray-400 rounded-lg">
                 No more chapters available

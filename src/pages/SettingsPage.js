@@ -5,6 +5,7 @@ import imageCache from '../services/imageCacheService';
 const SettingsPage = () => {
   const { 
     settings, 
+    updateSettings,
     updateReadingMode, 
     updateJapaneseHelper, 
     updatePageTransition,
@@ -39,6 +40,10 @@ const SettingsPage = () => {
 
   const handleZoomChange = (key, value) => {
     updateZoomSettings({ [key]: value });
+  };
+
+  const handleNavigationChange = (key, value) => {
+    updateSettings({ navigation: { ...settings.navigation, [key]: value } });
   };
 
   const handleResetSettings = () => {
@@ -247,6 +252,70 @@ const SettingsPage = () => {
                   <div className="text-xs opacity-70 mt-1">{theme.desc}</div>
                 </button>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Navigation Settings */}
+        <section className="bg-manga-gray rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-manga-text mb-4">
+            🧭 Navigation
+          </h2>
+          
+          <div className="space-y-6">
+            {/* Auto-Advance Feature */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-manga-text font-medium">Auto-advance to next chapter</span>
+                  <p className="text-sm text-manga-text/70">Automatically go to the next chapter after a timer</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.navigation.autoAdvance.enabled}
+                    onChange={(e) => handleNavigationChange('autoAdvance', { 
+                      ...settings.navigation.autoAdvance, 
+                      enabled: e.target.checked 
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-manga-light peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-manga-accent"></div>
+                </label>
+              </div>
+
+              {settings.navigation.autoAdvance.enabled && (
+                <div className="pl-4 border-l-2 border-manga-accent/30">
+                  <label className="block text-manga-text font-medium mb-2">
+                    Auto-advance delay
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 1, label: '1 second' },
+                      { value: 2, label: '2 seconds' },
+                      { value: 3, label: '3 seconds' }
+                    ].map((delay) => (
+                      <button
+                        key={delay.value}
+                        onClick={() => handleNavigationChange('autoAdvance', { 
+                          ...settings.navigation.autoAdvance, 
+                          delay: delay.value 
+                        })}
+                        className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                          settings.navigation.autoAdvance.delay === delay.value
+                            ? 'bg-manga-accent border-manga-accent text-white'
+                            : 'bg-manga-light border-manga-light text-manga-text hover:bg-manga-light/70'
+                        }`}
+                      >
+                        {delay.label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-manga-text/50 mt-2">
+                    Timer appears when you reach the end of a chapter
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </section>
