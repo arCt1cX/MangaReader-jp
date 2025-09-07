@@ -14,6 +14,7 @@ const SETTINGS_ACTIONS = {
   UPDATE_ZOOM_SETTINGS: 'UPDATE_ZOOM_SETTINGS',
   UPDATE_CUSTOM_SITES: 'UPDATE_CUSTOM_SITES',
   UPDATE_THEME: 'UPDATE_THEME',
+  UPDATE_NAVIGATION: 'UPDATE_NAVIGATION',
   RESET_SETTINGS: 'RESET_SETTINGS'
 };
 
@@ -116,6 +117,15 @@ function settingsReducer(state, action) {
         theme: action.payload
       };
 
+    case SETTINGS_ACTIONS.UPDATE_NAVIGATION:
+      return {
+        ...state,
+        navigation: {
+          ...state.navigation,
+          ...action.payload
+        }
+      };
+
     case SETTINGS_ACTIONS.RESET_SETTINGS:
       return DEFAULT_SETTINGS;
 
@@ -209,6 +219,13 @@ export function SettingsProvider({ children }) {
     });
   };
 
+  const updateNavigation = (navigationSettings) => {
+    dispatch({
+      type: SETTINGS_ACTIONS.UPDATE_NAVIGATION,
+      payload: navigationSettings
+    });
+  };
+
   const resetSettings = () => {
     dispatch({
       type: SETTINGS_ACTIONS.RESET_SETTINGS
@@ -234,6 +251,7 @@ export function SettingsProvider({ children }) {
     updateZoomSettings,
     updateCustomSites,
     updateTheme,
+    updateNavigation,
     resetSettings,
     getCacheStats,
     clearCache

@@ -5,13 +5,13 @@ import imageCache from '../services/imageCacheService';
 const SettingsPage = () => {
   const { 
     settings, 
-    updateSettings,
     updateReadingMode, 
     updateJapaneseHelper, 
     updatePageTransition,
     updatePageSpacing,
     updateZoomSettings,
     updateTheme,
+    updateNavigation,
     resetSettings,
     getCacheStats,
     clearCache
@@ -43,7 +43,7 @@ const SettingsPage = () => {
   };
 
   const handleNavigationChange = (key, value) => {
-    updateSettings({ navigation: { ...settings.navigation, [key]: value } });
+    updateNavigation({ [key]: value });
   };
 
   const handleResetSettings = () => {
