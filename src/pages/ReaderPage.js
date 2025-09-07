@@ -806,9 +806,12 @@ const ReaderPage = () => {
             {nextChapter ? (
               <button
                 onClick={goToNextChapter}
-                className={`bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
-                  showAutoAdvance ? 'ring-4 ring-blue-400/50 animate-pulse' : ''
-                }`}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 relative overflow-hidden"
+                style={{
+                  background: showAutoAdvance 
+                    ? `linear-gradient(to right, #1d4ed8 ${((settings.navigation.autoAdvance.delay - autoAdvanceTimer) / settings.navigation.autoAdvance.delay) * 100}%, #2563eb ${((settings.navigation.autoAdvance.delay - autoAdvanceTimer) / settings.navigation.autoAdvance.delay) * 100}%)`
+                    : undefined
+                }}
               >
                 <span>Next: Chapter {nextChapter.number}</span>
                 <span>→</span>
