@@ -58,7 +58,28 @@ const DEFAULT_SETTINGS = {
 function settingsReducer(state, action) {
   switch (action.type) {
     case SETTINGS_ACTIONS.LOAD_SETTINGS:
-      return { ...DEFAULT_SETTINGS, ...action.payload };
+      // Deep merge to ensure all nested objects have proper defaults
+      const mergedSettings = {
+        ...DEFAULT_SETTINGS,
+        ...action.payload,
+        zoom: {
+          ...DEFAULT_SETTINGS.zoom,
+          ...action.payload.zoom
+        },
+        japaneseHelper: {
+          ...DEFAULT_SETTINGS.japaneseHelper,
+          ...action.payload.japaneseHelper
+        },
+        navigation: {
+          ...DEFAULT_SETTINGS.navigation,
+          ...action.payload.navigation,
+          autoAdvance: {
+            ...DEFAULT_SETTINGS.navigation.autoAdvance,
+            ...(action.payload.navigation?.autoAdvance || {})
+          }
+        }
+      };
+      return mergedSettings;
 
     case SETTINGS_ACTIONS.UPDATE_READING_MODE:
       return {

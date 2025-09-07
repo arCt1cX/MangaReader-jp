@@ -273,9 +273,9 @@ const SettingsPage = () => {
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={settings.navigation.autoAdvance.enabled}
+                    checked={settings.navigation?.autoAdvance?.enabled || false}
                     onChange={(e) => handleNavigationChange('autoAdvance', { 
-                      ...settings.navigation.autoAdvance, 
+                      ...(settings.navigation?.autoAdvance || { enabled: false, delay: 3 }), 
                       enabled: e.target.checked 
                     })}
                     className="sr-only peer"
@@ -284,7 +284,7 @@ const SettingsPage = () => {
                 </label>
               </div>
 
-              {settings.navigation.autoAdvance.enabled && (
+              {settings.navigation?.autoAdvance?.enabled && (
                 <div className="pl-4 border-l-2 border-manga-accent/30">
                   <label className="block text-manga-text font-medium mb-2">
                     Auto-advance delay
@@ -298,11 +298,11 @@ const SettingsPage = () => {
                       <button
                         key={delay.value}
                         onClick={() => handleNavigationChange('autoAdvance', { 
-                          ...settings.navigation.autoAdvance, 
+                          ...(settings.navigation?.autoAdvance || { enabled: false, delay: 3 }), 
                           delay: delay.value 
                         })}
                         className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          settings.navigation.autoAdvance.delay === delay.value
+                          (settings.navigation?.autoAdvance?.delay || 3) === delay.value
                             ? 'bg-manga-accent border-manga-accent text-white'
                             : 'bg-manga-light border-manga-light text-manga-text hover:bg-manga-light/70'
                         }`}
