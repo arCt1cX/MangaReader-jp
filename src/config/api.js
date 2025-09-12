@@ -51,6 +51,14 @@ export const DEFAULT_MANGA_SITES = [
     color: '#e91e63',
     description: 'High quality raw manga with latest releases',
     logo: '/MangaReader-jp/rawkuma-favicon.png' // Using default logo for now
+  },
+  {
+    id: 'mangabuddy',
+    name: 'MangaBuddy',
+    url: 'https://mangabuddy.com',
+    color: '#4f46e5',
+    description: 'Popular English manga and manhwa reading site',
+    logo: '/MangaReader-jp/mangabuddy-favicon.png' // Using default logo for now
   }
 ];
 
