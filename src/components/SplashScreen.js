@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logo192 from '../icon-192.png';
+const logoSrc = typeof logo192 === 'string' ? logo192 : logo192.default;
 
 const THEME_COLORS = {
   standard: {
@@ -100,8 +101,9 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             
             {/* Book Icon */}
             <img
-              src={logo192}
+              src={logoSrc}
               alt="App Logo"
+              onError={e => { e.target.onerror = null; e.target.style.display = 'none'; document.getElementById('splash-fallback').style.display = 'block'; }}
               className={`w-24 h-24 object-contain transition-all duration-700 ease-out rounded-full shadow-lg ${
                 animationPhase === 'initial'
                   ? 'scale-0 rotate-45 opacity-0'
@@ -109,6 +111,15 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
               }`}
               style={{ background: colors.text === 'white' ? '#fff' : '#111827' }}
             />
+            <div
+              id="splash-fallback"
+              style={{ display: 'none', color: colors.text === 'white' ? '#fff' : '#111827' }}
+              className={`text-6xl transition-all duration-700 ease-out absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${
+                animationPhase === 'initial'
+                  ? 'scale-0 rotate-45 opacity-0'
+                  : 'scale-100 rotate-0 opacity-100'
+              }`}
+            >📚</div>
             
             {/* Sparkle Effects */}
             <div className={`absolute top-2 right-6 transition-all duration-500 delay-700 ${
