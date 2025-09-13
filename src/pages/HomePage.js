@@ -6,6 +6,7 @@ import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import CachedImage from '../components/CachedImage';
 import Icon from '../components/Icon';
+import ReorderableMangaSites from '../components/ReorderableMangaSites';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -197,39 +198,7 @@ const HomePage = () => {
       <div className="max-w-4xl mx-auto px-4 space-y-8">
         {/* Manga Sites */}
         <section>
-          <h2 className="text-xl font-semibold text-manga-text mb-4">
-            🌐 Browse Manga Sites
-          </h2>
-          <div className="flex flex-row gap-4 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-manga-accent/40 scrollbar-track-manga-gray/30 py-2">
-            {DEFAULT_MANGA_SITES.map((site) => (
-              <div
-                key={site.id}
-                onClick={() => handleSiteClick(site)}
-                className="min-w-[220px] bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-colors touch-improvement group flex-shrink-0"
-              >
-                <img
-                  src={site.logo}
-                  alt={site.name + ' logo'}
-                  className="w-8 h-8 mb-3 rounded"
-                  style={{ objectFit: 'contain', background: '#fff' }}
-                />
-                <h3 className="font-semibold text-manga-text group-hover:text-manga-accent transition-colors">
-                  {site.name}
-                </h3>
-                <p className="text-sm text-manga-text/70 mt-1">
-                  {site.description}
-                </p>
-                <div className="flex items-center justify-between mt-4">
-                  <span className="text-xs text-manga-text/50">
-                    {site.url}
-                  </span>
-                  <div className="text-manga-accent group-hover:transform group-hover:translate-x-1 transition-transform">
-                    →
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ReorderableMangaSites onSiteClick={handleSiteClick} />
         </section>
 
         {/* Recent Manga */}
