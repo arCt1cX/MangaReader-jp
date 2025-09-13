@@ -99,14 +99,14 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             
             {/* Book Icon */}
             <img
-              src="/icon-192.png"
-              alt="Manga Reader Icon"
-              className={`w-24 h-24 transition-all duration-700 ease-out mx-auto ${
-                animationPhase === 'initial' 
-                  ? 'scale-0 rotate-45 opacity-0' 
+              src={require('../../public/icon-192.png')}
+              alt="App Logo"
+              className={`w-24 h-24 object-contain transition-all duration-700 ease-out rounded-full shadow-lg ${
+                animationPhase === 'initial'
+                  ? 'scale-0 rotate-45 opacity-0'
                   : 'scale-100 rotate-0 opacity-100'
               }`}
-              style={{ filter: colors.text === 'white' ? '' : 'invert(0.85)' }}
+              style={{ background: colors.text === 'white' ? '#fff' : '#111827' }}
             />
             
             {/* Sparkle Effects */}
