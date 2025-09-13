@@ -6,7 +6,8 @@ import apiService from '../services/apiService';
 import chapterCache from '../services/cacheService';
 import CachedImage from '../components/CachedImage';
 import Icon from '../components/Icon';
-import ReorderableMangaSites from '../components/ReorderableMangaSites';
+import { useReorderableMangaSites } from '../hooks/useReorderableMangaSites';
+import ReorderableMangaCard from '../components/ReorderableMangaCard';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,14 @@ const HomePage = () => {
   const [recentManga, setRecentManga] = useState([]);
   const [backendStatus, setBackendStatus] = useState('checking');
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Use the reorderable manga sites hook
+  const { 
+    mangaSites, 
+    reorderSites, 
+    isReorderMode, 
+    setIsReorderMode 
+  } = useReorderableMangaSites();
 
   // Helper function to check if manga is completed (all available chapters read)
   const getMangaStatus = (manga) => {
@@ -75,6 +84,8 @@ const HomePage = () => {
   };
 
   const handleSiteClick = (site) => {
+    // Don't navigate during reorder mode
+    if (isReorderMode) return;
     navigate(`/search/${site.id}`);
   };
 
@@ -198,7 +209,36 @@ const HomePage = () => {
       <div className="max-w-4xl mx-auto px-4 space-y-8">
         {/* Manga Sites */}
         <section>
-          <ReorderableMangaSites onSiteClick={handleSiteClick} />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-manga-text">
+              🌐 Browse Manga Sites
+            </h2>
+            {isReorderMode && (
+              <button
+                onClick={() => setIsReorderMode(false)}
+                className="px-4 py-2 bg-manga-accent hover:opacity-90 text-white rounded-lg font-medium transition-all duration-200"
+              >
+                Done
+              </button>
+            )}
+          </div>
+          <div className={`flex flex-row gap-4 py-2 ${
+            isReorderMode 
+              ? 'overflow-x-hidden' // Disable horizontal scroll during reorder
+              : 'overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-manga-accent/40 scrollbar-track-manga-gray/30'
+          }`}>
+            {mangaSites.map((site, index) => (
+              <ReorderableMangaCard
+                key={site.id}
+                site={site}
+                index={index}
+                isReorderMode={isReorderMode}
+                setIsReorderMode={setIsReorderMode}
+                onSiteClick={() => handleSiteClick(site)}
+                onReorder={reorderSites}
+              />
+            ))}
+          </div>
         </section>
 
         {/* Recent Manga */}
