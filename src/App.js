@@ -65,7 +65,7 @@ function AppContent() {
   
   // Show splash screen during initial load
   if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+    return <SplashScreen onComplete={handleSplashComplete} theme={settings.theme} />;
   }
   
   // Show loading state briefly after splash
