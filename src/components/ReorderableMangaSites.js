@@ -106,6 +106,9 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
   const [longPressActive, setLongPressActive] = useState(null); // Index of card being long-pressed
 
   const handleTouchStart = useCallback((e, index) => {
+    // Prevent text selection immediately
+    e.preventDefault();
+    
     const touch = e.touches[0];
     const startData = {
       x: touch.clientX,
@@ -117,7 +120,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     setTouchStart(startData);
     setLongPressActive(index); // Show visual feedback
     
-    // Start long press timer for drag initiation (500ms)
+    // Start long press timer for drag initiation (400ms - shorter for better UX)
     const timer = setTimeout(() => {
       // Initiate drag mode after long press
       if (!touchDragging && touchStart && touchStart.index === index) {
@@ -127,7 +130,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
         
         // Provide haptic feedback if available
         if (navigator.vibrate) {
-          navigator.vibrate(50);
+          navigator.vibrate([50, 30, 50]); // Double pulse for drag start
         }
         
         // Prevent any scrolling once drag starts
@@ -136,7 +139,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
           scrollContainerRef.current.style.overflowX = 'hidden';
         }
       }
-    }, 500);
+    }, 400); // Reduced from 500ms
     
     setLongPressTimer(timer);
   }, [touchDragging, touchStart]);
@@ -147,19 +150,19 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     const touch = e.touches[0];
     const deltaX = Math.abs(touch.clientX - touchStart.x);
     const deltaY = Math.abs(touch.clientY - touchStart.y);
+    const totalMovement = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     
     // Clear long press timer if user moves significantly before drag starts
-    if (!touchDragging && (deltaX > 10 || deltaY > 10)) {
+    if (!touchDragging && totalMovement > 15) {
       if (longPressTimer) {
         clearTimeout(longPressTimer);
         setLongPressTimer(null);
       }
       setLongPressActive(null); // Clear visual feedback
       
-      // If movement is primarily horizontal and no drag started, allow normal scrolling
-      if (deltaX > deltaY && deltaX > 15) {
-        return; // Let the scroll container handle horizontal scrolling
-      }
+      // If movement is primarily horizontal, this is likely a scroll gesture
+      // Don't prevent default to allow normal scrolling
+      return;
     }
     
     if (touchDragging) {
@@ -209,10 +212,16 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
           reorderSites(draggedIndex, dropIndex);
         }
       }
-    } else if (touchStart && !touchDragging) {
-      // This was a tap, not a drag
+    } else if (touchStart && !touchDragging && longPressActive === null) {
+      // This was a clean tap (no movement, no long press started)
       const timeDiff = Date.now() - touchStart.timestamp;
-      if (timeDiff < 300) { // Quick tap
+      const touch = e.changedTouches[0];
+      const deltaX = Math.abs(touch.clientX - touchStart.x);
+      const deltaY = Math.abs(touch.clientY - touchStart.y);
+      const totalMovement = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      // Only trigger click if it was a quick tap with minimal movement
+      if (timeDiff < 200 && totalMovement < 10) {
         const site = orderedSites[touchStart.index];
         onSiteClick(site);
       }
@@ -224,7 +233,21 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     setTouchDragging(false);
     setLongPressActive(null); // Clear visual feedback
     handleDragEnd();
-  }, [touchDragging, touchCurrent, draggedIndex, touchStart, orderedSites, onSiteClick, reorderSites, handleDragEnd, longPressTimer]);
+  }, [touchDragging, touchCurrent, draggedIndex, touchStart, orderedSites, onSiteClick, reorderSites, handleDragEnd, longPressTimer, longPressActive]);
+
+  // Custom click handler for better control
+  const handleCardClick = useCallback((e, site) => {
+    // Only handle clicks on non-touch devices or if explicitly called
+    if (e.type === 'click' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+      // This is a touch device, ignore click events as we handle them in touch events
+      e.preventDefault();
+      return;
+    }
+    
+    if (!isDragging && !touchDragging) {
+      onSiteClick(site);
+    }
+  }, [isDragging, touchDragging, onSiteClick]);
 
   const getSiteCardClassName = (index) => {
     const baseClass = "min-w-[220px] bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-all duration-200 touch-improvement group flex-shrink-0";
@@ -270,7 +293,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
 
       {/* Drag instruction hint */}
       <p className="text-xs text-manga-text/40 -mt-2">
-        💡 Drag and drop to reorder sites • Long press and drag on touch devices
+        💡 Desktop: Drag to reorder • Mobile: Tap to open, Long press + drag to reorder
       </p>
 
       {/* Scrollable sites container */}
@@ -285,7 +308,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
             data-site-index={index}
             draggable={!touchDragging}
             className={getSiteCardClassName(index)}
-            onClick={() => !isDragging && !touchDragging && onSiteClick(site)}
+            onClick={(e) => handleCardClick(e, site)}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragEnd={handleDragEnd}
             onDragOver={(e) => handleDragOver(e, index)}
@@ -295,7 +318,11 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{
-              touchAction: touchDragging ? 'none' : longPressActive === index ? 'none' : 'pan-x'
+              touchAction: touchDragging ? 'none' : longPressActive === index ? 'none' : 'pan-x',
+              userSelect: 'none', // Prevent text selection
+              WebkitUserSelect: 'none',
+              WebkitTouchCallout: 'none', // Prevent iOS callout menu
+              WebkitTapHighlightColor: 'transparent' // Remove tap highlight
             }}
           >
             <div className="flex items-start justify-between mb-3">
