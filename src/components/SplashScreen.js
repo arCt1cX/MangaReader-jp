@@ -98,13 +98,16 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
           <div className={`w-32 h-32 bg-gradient-to-br ${colors.gradient} rounded-full flex items-center justify-center shadow-2xl ${colors.accent === 'manga-accent' ? 'shadow-manga-accent/25' : ''}`}>
             
             {/* Book Icon */}
-            <div className={`text-6xl transition-all duration-700 ease-out ${
-              animationPhase === 'initial' 
-                ? 'scale-0 rotate-45' 
-                : 'scale-100 rotate-0'
-            }`} style={{ color: colors.text === 'white' ? '#fff' : '#111827' }}>
-              📚
-            </div>
+            <img
+              src={require('../../public/icon-192.png')}
+              alt="Manga Reader Icon"
+              className={`w-24 h-24 transition-all duration-700 ease-out mx-auto ${
+                animationPhase === 'initial' 
+                  ? 'scale-0 rotate-45 opacity-0' 
+                  : 'scale-100 rotate-0 opacity-100'
+              }`}
+              style={{ filter: colors.text === 'white' ? '' : 'invert(0.85)' }}
+            />
             
             {/* Sparkle Effects */}
             <div className={`absolute top-2 right-6 transition-all duration-500 delay-700 ${
