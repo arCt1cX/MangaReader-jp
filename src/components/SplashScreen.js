@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logo192 from '../icon-192.png';
 
 const THEME_COLORS = {
   standard: {
@@ -99,7 +100,7 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             
             {/* Book Icon */}
             <img
-              src={require('../icon-192.png')}
+              src={logo192}
               alt="App Logo"
               className={`w-24 h-24 object-contain transition-all duration-700 ease-out rounded-full shadow-lg ${
                 animationPhase === 'initial'
