@@ -109,7 +109,7 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
                   ? 'scale-0 rotate-45 opacity-0'
                   : 'scale-100 rotate-0 opacity-100'
               }`}
-              style={{ background: colors.text === 'white' ? '#fff' : '#111827' }}
+              style={{ background: 'transparent' }}
             />
             <div
               id="splash-fallback"
@@ -135,24 +135,22 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
           </div>
         </div>
         
-        {/* App Title */}
-            <div className={`text-center z-30 transition-all duration-800 ease-out delay-300 ${
-              animationPhase === 'text' || animationPhase === 'fadeOut'
-                ? 'opacity-100 translate-y-0' 
-                : 'opacity-0 translate-y-8'
-            }`}>
-          <h1 className={`text-4xl md:text-5xl font-bold mb-2 tracking-wide ${colors.text === 'white' ? 'text-white' : 'text-manga-dark'}`}>
-            <span className={`bg-gradient-to-r from-white via-${colors.accent} to-white bg-clip-text text-transparent animate-gradient`}>
-              Manga Reader
-            </span>
-          </h1>
-          <p className={`${colors.text === 'white' ? 'text-white/80' : 'text-manga-dark/80'} text-lg font-medium`}>
-            読書体験を向上させる
-          </p>
-          <p className={`${colors.text === 'white' ? 'text-white/60' : 'text-manga-dark/60'} text-sm mt-1`}>
-            Enhanced Reading Experience
-          </p>
-        </div>
+        {/* App Title - only show during 'text' phase */}
+        {animationPhase === 'text' && (
+          <div className="text-center z-30 mt-2 transition-all duration-800 ease-out delay-300 opacity-100 translate-y-0">
+            <h1 className={`text-4xl md:text-5xl font-bold mb-2 tracking-wide ${colors.text === 'white' ? 'text-white' : 'text-manga-dark'}`}>
+              <span className={`bg-gradient-to-r from-white via-${colors.accent} to-white bg-clip-text text-transparent animate-gradient`}>
+                Manga Reader
+              </span>
+            </h1>
+            <p className={`${colors.text === 'white' ? 'text-white/80' : 'text-manga-dark/80'} text-lg font-medium`}>
+              読書体験を向上させる
+            </p>
+            <p className={`${colors.text === 'white' ? 'text-white/60' : 'text-manga-dark/60'} text-sm mt-1`}>
+              Enhanced Reading Experience
+            </p>
+          </div>
+        )}
         
         {/* Loading Animation */}
         <div className={`mt-8 transition-all duration-500 delay-500 ${
