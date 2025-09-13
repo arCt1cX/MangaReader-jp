@@ -100,17 +100,17 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
           <div className={`w-32 h-32 bg-gradient-to-br ${colors.gradient} rounded-full flex items-center justify-center shadow-2xl ${colors.accent === 'manga-accent' ? 'shadow-manga-accent/25' : ''}`}>
             
             {/* Book Icon */}
-            <img
-              src={logoSrc}
-              alt="App Logo"
-              onError={e => { e.target.onerror = null; e.target.style.display = 'none'; document.getElementById('splash-fallback').style.display = 'block'; }}
-              className={`w-24 h-24 object-contain transition-all duration-700 ease-out rounded-full shadow-lg ${
-                animationPhase === 'initial'
-                  ? 'scale-0 rotate-45 opacity-0'
-                  : 'scale-100 rotate-0 opacity-100'
-              }`}
-              style={{ background: 'transparent' }}
-            />
+                 <img
+                   src={logoSrc}
+                   alt="App Logo"
+                   onError={e => { e.target.onerror = null; e.target.style.display = 'none'; document.getElementById('splash-fallback').style.display = 'block'; }}
+                   className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-cover transition-all duration-700 ease-out rounded-full shadow-lg ${
+                     animationPhase === 'initial'
+                       ? 'scale-0 rotate-45 opacity-0'
+                       : 'scale-100 rotate-0 opacity-100'
+                   }`}
+                   style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
+                 />
             <div
               id="splash-fallback"
               style={{ display: 'none', color: colors.text === 'white' ? '#fff' : '#111827' }}
@@ -135,7 +135,7 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
           </div>
         </div>
         
-        {/* App Title - only show during 'text' phase */}
+        {/* App Title - only show during 'text' phase and not during fadeOut */}
         {animationPhase === 'text' && (
           <div className="text-center z-30 mt-2 transition-all duration-800 ease-out delay-300 opacity-100 translate-y-0">
             <h1 className={`text-4xl md:text-5xl font-bold mb-2 tracking-wide ${colors.text === 'white' ? 'text-white' : 'text-manga-dark'}`}>
@@ -149,6 +149,12 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             <p className={`${colors.text === 'white' ? 'text-white/60' : 'text-manga-dark/60'} text-sm mt-1`}>
               Enhanced Reading Experience
             </p>
+          </div>
+        )}
+        {/* Loading Animation - only show during fadeOut phase */}
+        {animationPhase === 'fadeOut' && (
+          <div className="text-center z-30 mt-2 transition-all duration-800 ease-out delay-300 opacity-100 translate-y-0">
+            <p className={`${colors.text === 'white' ? 'text-white/80' : 'text-manga-dark/80'} text-lg font-medium`}>Loading…</p>
           </div>
         )}
         
