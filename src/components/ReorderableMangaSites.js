@@ -102,16 +102,44 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchCurrent, setTouchCurrent] = useState(null);
   const [touchDragging, setTouchDragging] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState(null);
+  const [longPressActive, setLongPressActive] = useState(null); // Index of card being long-pressed
 
   const handleTouchStart = useCallback((e, index) => {
     const touch = e.touches[0];
-    setTouchStart({
+    const startData = {
       x: touch.clientX,
       y: touch.clientY,
       index,
       timestamp: Date.now()
-    });
-  }, []);
+    };
+    
+    setTouchStart(startData);
+    setLongPressActive(index); // Show visual feedback
+    
+    // Start long press timer for drag initiation (500ms)
+    const timer = setTimeout(() => {
+      // Initiate drag mode after long press
+      if (!touchDragging && touchStart && touchStart.index === index) {
+        setTouchDragging(true);
+        setDraggedIndex(index);
+        setIsDragging(true);
+        
+        // Provide haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+        
+        // Prevent any scrolling once drag starts
+        document.body.style.overflow = 'hidden';
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.style.overflowX = 'hidden';
+        }
+      }
+    }, 500);
+    
+    setLongPressTimer(timer);
+  }, [touchDragging, touchStart]);
 
   const handleTouchMove = useCallback((e) => {
     if (!touchStart) return;
@@ -120,24 +148,56 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     const deltaX = Math.abs(touch.clientX - touchStart.x);
     const deltaY = Math.abs(touch.clientY - touchStart.y);
     
-    // Start dragging if moved more than 10px and primarily horizontal
-    if (!touchDragging && deltaX > 10 && deltaX > deltaY) {
-      setTouchDragging(true);
-      setDraggedIndex(touchStart.index);
-      setIsDragging(true);
-      e.preventDefault(); // Prevent scrolling
+    // Clear long press timer if user moves significantly before drag starts
+    if (!touchDragging && (deltaX > 10 || deltaY > 10)) {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
+      setLongPressActive(null); // Clear visual feedback
+      
+      // If movement is primarily horizontal and no drag started, allow normal scrolling
+      if (deltaX > deltaY && deltaX > 15) {
+        return; // Let the scroll container handle horizontal scrolling
+      }
     }
     
     if (touchDragging) {
+      // Prevent all default behavior during dragging
+      e.preventDefault();
+      e.stopPropagation();
+      
       setTouchCurrent({
         x: touch.clientX,
         y: touch.clientY
       });
-      e.preventDefault();
+      
+      // Find the element currently under the touch point
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const siteCard = elementBelow?.closest('[data-site-index]');
+      
+      if (siteCard) {
+        const targetIndex = parseInt(siteCard.dataset.siteIndex);
+        if (targetIndex !== draggedIndex) {
+          setDragOverIndex(targetIndex);
+        }
+      }
     }
-  }, [touchStart, touchDragging]);
+  }, [touchStart, touchDragging, longPressTimer, draggedIndex]);
 
   const handleTouchEnd = useCallback((e) => {
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
+    // Restore scrolling
+    document.body.style.overflow = '';
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.overflowX = 'auto';
+    }
+    
     if (touchDragging && touchCurrent && draggedIndex !== null) {
       // Find the drop target based on touch position
       const elements = document.elementsFromPoint(touchCurrent.x, touchCurrent.y);
@@ -162,8 +222,9 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     setTouchStart(null);
     setTouchCurrent(null);
     setTouchDragging(false);
+    setLongPressActive(null); // Clear visual feedback
     handleDragEnd();
-  }, [touchDragging, touchCurrent, draggedIndex, touchStart, orderedSites, onSiteClick, reorderSites, handleDragEnd]);
+  }, [touchDragging, touchCurrent, draggedIndex, touchStart, orderedSites, onSiteClick, reorderSites, handleDragEnd, longPressTimer]);
 
   const getSiteCardClassName = (index) => {
     const baseClass = "min-w-[220px] bg-manga-gray rounded-lg p-6 cursor-pointer hover:bg-manga-light transition-all duration-200 touch-improvement group flex-shrink-0";
@@ -182,6 +243,10 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
     
     if (touchDragging && index === draggedIndex) {
       additionalClasses += " shadow-2xl transform rotate-1";
+    }
+    
+    if (longPressActive === index && !touchDragging) {
+      additionalClasses += " transform scale-105 ring-2 ring-manga-accent/30 ring-pulse";
     }
     
     return `${baseClass} ${additionalClasses}`;
@@ -205,7 +270,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
 
       {/* Drag instruction hint */}
       <p className="text-xs text-manga-text/40 -mt-2">
-        💡 Drag and drop to reorder sites • Touch and hold on mobile
+        💡 Drag and drop to reorder sites • Long press and drag on touch devices
       </p>
 
       {/* Scrollable sites container */}
@@ -230,7 +295,7 @@ const ReorderableMangaSites = ({ onSiteClick }) => {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{
-              touchAction: touchDragging ? 'none' : 'manipulation'
+              touchAction: touchDragging ? 'none' : longPressActive === index ? 'none' : 'pan-x'
             }}
           >
             <div className="flex items-start justify-between mb-3">
