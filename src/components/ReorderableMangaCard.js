@@ -36,7 +36,11 @@ const ReorderableMangaCard = ({
   const handlePointerDown = useCallback((e) => {
     e.preventDefault();
     setIsPressed(true);
-    dragStartPos.current = { x: e.clientX || e.touches?.[0]?.clientX, y: e.clientY || e.touches?.[0]?.clientY };
+    
+    // Get coordinates from mouse or touch
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+    dragStartPos.current = { x: clientX, y: clientY };
     isDragStarted.current = false;
 
     // Start long press timer
@@ -58,15 +62,16 @@ const ReorderableMangaCard = ({
   const handlePointerMove = useCallback((e) => {
     if (!isPressed || !dragStartPos.current) return;
 
-    const currentX = e.clientX || e.touches?.[0]?.clientX;
-    const currentY = e.clientY || e.touches?.[0]?.clientY;
+    // Get coordinates from mouse or touch  
+    const currentX = e.clientX ?? e.touches?.[0]?.clientX;
+    const currentY = e.clientY ?? e.touches?.[0]?.clientY;
     
     const deltaX = currentX - dragStartPos.current.x;
     const deltaY = currentY - dragStartPos.current.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     // If moved beyond threshold, cancel long press and start drag if in reorder mode
-    if (distance > DRAG_THRESHOLD) {
+    if (distance > DRAG_THRESHOLD && !isDragStarted.current) {
       isDragStarted.current = true;
       if (longPressTimer) {
         clearTimeout(longPressTimer);
@@ -78,8 +83,11 @@ const ReorderableMangaCard = ({
         setIsDragging(true);
         setDragOffset({ x: deltaX, y: deltaY });
       }
+    } else if (isDragging) {
+      // Continue dragging - update position
+      setDragOffset({ x: deltaX, y: deltaY });
     }
-  }, [isPressed, isReorderMode, longPressTimer]);
+  }, [isPressed, isReorderMode, longPressTimer, isDragging]);
 
   const handlePointerUp = useCallback((e) => {
     if (longPressTimer) {
@@ -93,10 +101,9 @@ const ReorderableMangaCard = ({
       setDragOffset({ x: 0, y: 0 });
       
       // Find drop target
-      const dropTarget = document.elementFromPoint(
-        e.clientX || e.changedTouches?.[0]?.clientX, 
-        e.clientY || e.changedTouches?.[0]?.clientY
-      );
+      const clientX = e.clientX ?? e.changedTouches?.[0]?.clientX;
+      const clientY = e.clientY ?? e.changedTouches?.[0]?.clientY;
+      const dropTarget = document.elementFromPoint(clientX, clientY);
       
       if (dropTarget) {
         const dropCard = dropTarget.closest('[data-site-index]');
@@ -135,6 +142,8 @@ const ReorderableMangaCard = ({
     transform: isDragging ? `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.05)` : 'none',
     zIndex: isDragging ? 1000 : 'auto',
     transition: isDragging ? 'none' : 'all 0.2s ease',
+    opacity: isDragging ? 0.9 : 1,
+    boxShadow: isDragging ? '0 10px 25px rgba(0, 0, 0, 0.5)' : 'none',
   };
 
   return (
@@ -145,6 +154,9 @@ const ReorderableMangaCard = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onMouseDown={handlePointerDown}
+      onMouseMove={handlePointerMove}
+      onMouseUp={handlePointerUp}
       onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}

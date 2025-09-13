@@ -208,7 +208,7 @@ const HomePage = () => {
 
       <div className="max-w-4xl mx-auto px-4 space-y-8">
         {/* Manga Sites */}
-        <section>
+        <section className="relative">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-manga-text">
               🌐 Browse Manga Sites
@@ -222,9 +222,14 @@ const HomePage = () => {
               </button>
             )}
           </div>
-          <div className={`flex flex-row gap-4 py-2 ${
+          {isReorderMode && (
+            <div className="text-center text-manga-accent text-sm font-medium py-2 mb-2 bg-manga-gray/30 rounded-lg">
+              🎯 Drag and drop cards to reorder • Tap "Done" when finished
+            </div>
+          )}
+          <div className={`flex flex-row gap-4 py-2 transition-all duration-300 ${
             isReorderMode 
-              ? 'overflow-x-hidden' // Disable horizontal scroll during reorder
+              ? 'overflow-x-hidden bg-manga-dark/50 rounded-lg p-4 border-2 border-dashed border-manga-accent/30' // Visual reorder mode
               : 'overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-manga-accent/40 scrollbar-track-manga-gray/30'
           }`}>
             {mangaSites.map((site, index) => (
