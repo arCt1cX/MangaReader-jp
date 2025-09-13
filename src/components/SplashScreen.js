@@ -77,7 +77,7 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
       </div>
       
       {/* Main Logo Container */}
-      <div className="relative z-10 flex flex-col items-center">
+          <div className="relative z-10 flex flex-col items-center mt-2">
         
         {/* Logo Circle with Book Icon */}
         <div className={`relative mb-8 transition-all duration-1000 ease-out ${
@@ -136,11 +136,11 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
         </div>
         
         {/* App Title */}
-        <div className={`text-center transition-all duration-800 ease-out delay-300 ${
-          animationPhase === 'text' || animationPhase === 'fadeOut'
-            ? 'opacity-100 translate-y-0' 
-            : 'opacity-0 translate-y-8'
-        }`}>
+            <div className={`text-center z-30 transition-all duration-800 ease-out delay-300 ${
+              animationPhase === 'text' || animationPhase === 'fadeOut'
+                ? 'opacity-100 translate-y-0' 
+                : 'opacity-0 translate-y-8'
+            }`}>
           <h1 className={`text-4xl md:text-5xl font-bold mb-2 tracking-wide ${colors.text === 'white' ? 'text-white' : 'text-manga-dark'}`}>
             <span className={`bg-gradient-to-r from-white via-${colors.accent} to-white bg-clip-text text-transparent animate-gradient`}>
               Manga Reader
