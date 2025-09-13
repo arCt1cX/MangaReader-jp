@@ -5,8 +5,8 @@ const ReorderableMangaCard = ({
   index, 
   onReorder, 
   isReorderMode, 
-  onLongPress,
-  onClick 
+  setIsReorderMode,
+  onSiteClick
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -20,6 +20,19 @@ const ReorderableMangaCard = ({
   const LONG_PRESS_DURATION = 500; // 0.5 seconds
   const DRAG_THRESHOLD = 10; // pixels
 
+  // Handle long press to enter reorder mode
+  const handleLongPress = useCallback(() => {
+    setIsReorderMode(true);
+    console.log('Long press detected - entering reorder mode');
+  }, [setIsReorderMode]);
+
+  // Handle regular click to navigate
+  const handleClick = useCallback(() => {
+    if (!isReorderMode && onSiteClick) {
+      onSiteClick();
+    }
+  }, [isReorderMode, onSiteClick]);
+
   const handlePointerDown = useCallback((e) => {
     e.preventDefault();
     setIsPressed(true);
@@ -30,7 +43,7 @@ const ReorderableMangaCard = ({
     const timer = setTimeout(() => {
       if (!isDragStarted.current) {
         setIsPressed(false);
-        onLongPress();
+        handleLongPress();
         
         // Add haptic feedback for supported devices
         if (navigator.vibrate) {
@@ -40,7 +53,7 @@ const ReorderableMangaCard = ({
     }, LONG_PRESS_DURATION);
     
     setLongPressTimer(timer);
-  }, [onLongPress]);
+  }, [handleLongPress]);
 
   const handlePointerMove = useCallback((e) => {
     if (!isPressed || !dragStartPos.current) return;
@@ -98,7 +111,7 @@ const ReorderableMangaCard = ({
       // Regular click
       setIsPressed(false);
       if (!isReorderMode) {
-        onClick();
+        handleClick();
       }
     }
 
@@ -107,7 +120,7 @@ const ReorderableMangaCard = ({
     setDragOffset({ x: 0, y: 0 });
     dragStartPos.current = null;
     isDragStarted.current = false;
-  }, [isDragging, isPressed, index, onReorder, onClick, isReorderMode]);
+  }, [isDragging, isPressed, index, onReorder, handleClick, isReorderMode]);
 
   // Cleanup timer on unmount
   React.useEffect(() => {
