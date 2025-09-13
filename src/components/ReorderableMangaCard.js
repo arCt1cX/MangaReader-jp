@@ -22,9 +22,8 @@ const ReorderableMangaCard = ({
 
   // Handle long press to enter reorder mode
   const handleLongPress = useCallback(() => {
-    console.log(`⏰ Long press detected for ${site.name} - entering reorder mode`);
     setIsReorderMode(true);
-  }, [setIsReorderMode, site.name]);
+  }, [setIsReorderMode]);
 
   // Handle regular click to navigate
   const handleClick = useCallback(() => {
@@ -86,7 +85,6 @@ const ReorderableMangaCard = ({
 
     // If moved beyond threshold, cancel long press and start drag if in reorder mode
     if (distance > DRAG_THRESHOLD) {
-      console.log(`🖱️ Starting drag for ${site.name} (distance: ${distance})`);
       isDragStarted.current = true;
       if (longPressTimer) {
         clearTimeout(longPressTimer);
@@ -95,7 +93,6 @@ const ReorderableMangaCard = ({
       setIsPressed(false);
 
       if (isReorderMode) {
-        console.log(`🎯 Drag mode activated for ${site.name}`);
         setIsDragging(true);
         setDragOffset({ x: deltaX, y: deltaY });
       }
@@ -117,25 +114,19 @@ const ReorderableMangaCard = ({
     }
 
     if (isDragging) {
-      console.log(`📍 Dropping ${site.name} at position`);
       // Handle drop logic
       setIsDragging(false);
       setDragOffset({ x: 0, y: 0 });
       
       // Find drop target
       const coords = getEventCoordinates(e);
-      console.log(`🎯 Drop coordinates: ${coords.x}, ${coords.y}`);
       const dropTarget = document.elementFromPoint(coords.x, coords.y);
-      console.log(`🎯 Drop target:`, dropTarget);
       
       if (dropTarget) {
         const dropCard = dropTarget.closest('[data-site-index]');
-        console.log(`🎯 Drop card:`, dropCard);
         if (dropCard) {
           const dropIndex = parseInt(dropCard.dataset.siteIndex);
-          console.log(`🎯 Drop from ${index} to ${dropIndex}`);
           if (dropIndex !== index && !isNaN(dropIndex)) {
-            console.log(`✅ Reordering from ${index} to ${dropIndex}`);
             onReorder(index, dropIndex);
           }
         }

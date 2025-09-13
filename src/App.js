@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { LibraryProvider } from './contexts/LibraryContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useSettings } from './contexts/SettingsContext';
+import SplashScreen from './components/SplashScreen';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import MangaDetailPage from './pages/MangaDetailPage';
@@ -13,6 +14,29 @@ import Navigation from './components/Navigation';
 
 function AppContent() {
   const { settings } = useSettings();
+  const [showSplash, setShowSplash] = useState(true);
+  const [appReady, setAppReady] = useState(false);
+  
+  // Check if this is the first load or a fresh launch
+  useEffect(() => {
+    const lastSplashTime = localStorage.getItem('lastSplashTime');
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+    
+    // Show splash if it's first time or more than 5 minutes since last splash
+    if (!lastSplashTime || now - parseInt(lastSplashTime) > fiveMinutes) {
+      setShowSplash(true);
+      localStorage.setItem('lastSplashTime', now.toString());
+    } else {
+      setShowSplash(false);
+      setAppReady(true);
+    }
+  }, []);
+  
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+    setTimeout(() => setAppReady(true), 100); // Small delay for smooth transition
+  };
   
   // Apply theme to document body
   useEffect(() => {
@@ -38,6 +62,20 @@ function AppContent() {
       themeColorMeta.setAttribute('content', bgColor);
     }
   }, [settings.theme]);
+  
+  // Show splash screen during initial load
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+  
+  // Show loading state briefly after splash
+  if (!appReady) {
+    return (
+      <div className={`min-h-screen bg-manga-dark theme-${settings.theme} flex items-center justify-center`}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-manga-accent"></div>
+      </div>
+    );
+  }
   
   return (
     <Router>

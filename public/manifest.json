@@ -21,11 +21,45 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#1f2937",
+  "display_override": ["standalone", "minimal-ui"],
+  "theme_color": "#3b82f6",
   "background_color": "#111827",
   "orientation": "portrait-primary",
   "categories": ["entertainment", "education", "books"],
   "lang": "en",
   "dir": "ltr",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Library",
+      "short_name": "Library",
+      "description": "View your manga library",
+      "url": "/#/library",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings", 
+      "description": "App settings and preferences",
+      "url": "/#/settings",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
