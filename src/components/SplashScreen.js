@@ -99,7 +99,7 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             
             {/* Book Icon */}
             <img
-              src={require('../../public/icon-192.png')}
+              src="/icon-192.png"
               alt="Manga Reader Icon"
               className={`w-24 h-24 transition-all duration-700 ease-out mx-auto ${
                 animationPhase === 'initial' 
