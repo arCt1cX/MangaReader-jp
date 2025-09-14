@@ -151,12 +151,6 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
             </p>
           </div>
         )}
-        {/* Loading Animation - only show during fadeOut phase */}
-        {animationPhase === 'fadeOut' && (
-          <div className="text-center z-30 mt-2 transition-all duration-800 ease-out delay-300 opacity-100 translate-y-0">
-            <p className={`${colors.text === 'white' ? 'text-white/80' : 'text-manga-dark/80'} text-lg font-medium`}>Loading…</p>
-          </div>
-        )}
         
         {/* Loading Animation */}
         <div className={`mt-8 transition-all duration-500 delay-500 ${
