@@ -163,14 +163,6 @@ const SplashScreen = ({ onComplete, theme = 'standard' }) => {
           </div>
         </div>
         
-        {/* Version Badge */}
-        <div className={`absolute bottom-16 left-1/2 transform -translate-x-1/2 transition-all duration-500 delay-700 ${
-          animationPhase === 'text' ? 'opacity-60' : 'opacity-0'
-        }`}>
-          <div className={`${colors.badge} backdrop-blur-sm rounded-full px-4 py-2 border ${colors.ring}`}>
-            <span className={`${colors.text === 'white' ? 'text-white/70' : 'text-manga-dark/70'} text-sm`}>v2.1.0 • PWA Ready</span>
-          </div>
-        </div>
       </div>
       
       {/* Floating Particles */}
