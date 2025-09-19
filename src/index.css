@@ -416,6 +416,25 @@ html {
   }
 }
 
+/* Render a background extension into the safe area using a pseudo-element.
+   This helps on iOS versions where env() works inconsistently for fixed items. */
+.safe-fill-bottom::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: env(safe-area-inset-bottom);
+  pointer-events: none;
+  background: inherit;
+}
+
+@supports (padding-bottom: constant(safe-area-inset-bottom)) {
+  .safe-fill-bottom::after {
+    height: constant(safe-area-inset-bottom);
+  }
+}
+
 /* Splash Screen Animations */
 @keyframes spin-slow {
   from {
