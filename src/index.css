@@ -380,6 +380,18 @@ html {
   }
 }
 
+/* Safe area helpers for iOS PWA (bottom home-indicator area) */
+.safe-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Fallback for older iOS versions */
+@supports (padding-bottom: constant(safe-area-inset-bottom)) {
+  .safe-inset-bottom {
+    padding-bottom: constant(safe-area-inset-bottom);
+  }
+}
+
 /* Splash Screen Animations */
 @keyframes spin-slow {
   from {

@@ -33,35 +33,9 @@ const Navigation = () => {
   ];
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 bg-manga-gray border-t border-manga-light z-50"
-      style={{
-        // Remove paddingBottom, only background fills safe area
-        boxShadow: '0 -1px 0 0 var(--manga-light)',
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }}
-    >
-      {/* Pseudo-element for safe area background fill */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 'env(safe-area-inset-bottom)',
-          background: 'inherit',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      />
-      <div className="max-w-4xl mx-auto px-4" style={{ position: 'relative', zIndex: 2 }}>
-        <div
-          className="flex items-center justify-around py-2"
-          style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
-        >
+    <nav className="fixed bottom-0 left-0 right-0 bg-manga-gray border-t border-manga-light z-50 safe-inset-bottom">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="flex items-center justify-around py-2">
           {navItems.map((item) => (
             <button
               key={item.path}
