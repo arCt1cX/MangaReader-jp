@@ -33,7 +33,14 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-manga-gray border-t border-manga-light z-50">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-manga-gray border-t border-manga-light z-50"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        // Ensure background color fills the safe area
+        boxShadow: '0 -1px 0 0 var(--manga-light)',
+      }}
+    >
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-around py-2">
           {navItems.map((item) => (
