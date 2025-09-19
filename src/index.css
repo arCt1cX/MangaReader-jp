@@ -392,6 +392,30 @@ html {
   }
 }
 
+/* Stronger fill approach for iOS PWA: extend background into the home-indicator area.
+   Uses a negative margin fallback to visually extend fixed elements to the physical bottom. */
+.safe-fill-bottom {
+  /* Ensure content is padded above the inset so icons remain tappable */
+  padding-bottom: env(safe-area-inset-bottom);
+  /* Visually extend the element into the inset area */
+  margin-bottom: 0;
+}
+
+@supports (padding-bottom: constant(safe-area-inset-bottom)) {
+  .safe-fill-bottom {
+    padding-bottom: constant(safe-area-inset-bottom);
+    margin-bottom: 0;
+  }
+}
+
+/* Fallback trick for older iOS where env()/constant() aren't supported:
+   apply extra bottom padding and negative body padding to visually push the background down. */
+@media (max-width: 1024px) {
+  .safe-fill-bottom.fallback-legacy {
+    padding-bottom: 20px; /* modest extra padding */
+  }
+}
+
 /* Splash Screen Animations */
 @keyframes spin-slow {
   from {
