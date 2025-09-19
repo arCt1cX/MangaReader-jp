@@ -5,6 +5,28 @@ import Icon from './Icon';
 const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const supportsEnv = typeof window !== 'undefined' && CSS && typeof CSS.supports === 'function' && (
+        CSS.supports('padding-bottom: env(safe-area-inset-bottom)') || CSS.supports('padding-bottom: constant(safe-area-inset-bottom)')
+      );
+
+      // Check if running as a standalone PWA (iOS and other platforms)
+      const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+      const navigatorStandalone = window.navigator && (window.navigator.standalone === true);
+
+      if (navRef.current && !supportsEnv && (isStandalone || navigatorStandalone)) {
+        navRef.current.classList.add('fallback-legacy');
+      }
+    } catch (e) {
+      // If CSS.supports isn't available, assume older iOS and add fallback
+      if (navRef.current && (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
+        navRef.current.classList.add('fallback-legacy');
+      }
+    }
+  }, []);
 
   // Don't show navigation on reader page for full immersion
   if (location.pathname.includes('/reader/')) {
@@ -31,29 +53,7 @@ const Navigation = () => {
       active: location.pathname === '/settings'
     }
   ];
-
-  const navRef = useRef(null);
-
-  useEffect(() => {
-    try {
-      const supportsEnv = typeof window !== 'undefined' && CSS && typeof CSS.supports === 'function' && (
-        CSS.supports('padding-bottom: env(safe-area-inset-bottom)') || CSS.supports('padding-bottom: constant(safe-area-inset-bottom)')
-      );
-
-      // Check if running as a standalone PWA (iOS and other platforms)
-      const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-      const navigatorStandalone = window.navigator && (window.navigator.standalone === true);
-
-      if (navRef.current && !supportsEnv && (isStandalone || navigatorStandalone)) {
-        navRef.current.classList.add('fallback-legacy');
-      }
-    } catch (e) {
-      // If CSS.supports isn't available, assume older iOS and add fallback
-      if (navRef.current && (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
-        navRef.current.classList.add('fallback-legacy');
-      }
-    }
-  }, []);
+  
 
   return (
     <nav ref={navRef} className="fixed bottom-0 left-0 right-0 bg-manga-gray border-t border-manga-light z-50 safe-fill-bottom">
